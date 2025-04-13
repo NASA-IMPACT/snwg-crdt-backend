@@ -1,0 +1,19 @@
+{
+  "name": "lwang-server",
+  "version": "1.0.0",
+  "description": "Lwang server",
+  "main": "index.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hocuspocus/extension-sqlite": "^2.15.2",
+    "@hocuspocus/server": "^2.15.2",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.24"
+  },
+  "packageManager": "pnpm@8.15.9+sha512.499434c9d8fdd1a2794ebf4552b3b25c0a633abcee5bb15e7b5de90f32f47b513aca98cd5cfd001c31f0db454bc3804edccd578501e4ca293a6816166bbd9f81"
+}

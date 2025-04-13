@@ -1,0 +1,11 @@
+services:
+  server:
+    build: .
+    volumes:
+      - .:/code
+      - ./db:/db
+    ports:
+      - "${APP_PORT}:8001"
+    environment:
+      APP_SQLITE_DB: /db/db.sqlite
+    command: sh -c 'pnpm install && pnpm start --host'

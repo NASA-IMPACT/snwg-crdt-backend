@@ -1,32 +1,32 @@
 {
-  "name": "lwang-server",
-  "version": "1.0.0",
-  "description": "Lwang server",
-  "type": "module",
-  "scripts": {
-    "lint:js": "eslint main.ts",
-    "lint:unused": "knip --tags=-knipignore",
-    "lint:ts": "tsc",
-    "start": "tsx main.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@hocuspocus/extension-logger": "^2.15.2",
-    "@hocuspocus/extension-sqlite": "^2.15.2",
-    "@hocuspocus/server": "^2.15.2",
-    "y-protocols": "^1.0.6",
-    "yjs": "^13.6.24"
-  },
-  "packageManager": "pnpm@8.15.9+sha512.499434c9d8fdd1a2794ebf4552b3b25c0a633abcee5bb15e7b5de90f32f47b513aca98cd5cfd001c31f0db454bc3804edccd578501e4ca293a6816166bbd9f81",
-  "devDependencies": {
-    "@eslint/js": "^9.24.0",
-    "@types/node": "^22.14.1",
-    "eslint": "^9.24.0",
-    "knip": "^5.50.4",
-    "tsx": "^4.19.3",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.29.1"
-  }
+    "name": "lwang-server",
+    "version": "1.0.0",
+    "description": "Lwang server",
+    "type": "module",
+    "scripts": {
+        "lint:js": "eslint main.ts",
+        "lint:unused": "knip --tags=-knipignore",
+        "lint:ts": "tsc",
+        "start": "tsx main.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@hocuspocus/extension-logger": "^2.15.2",
+        "@hocuspocus/extension-sqlite": "^2.15.2",
+        "@hocuspocus/server": "^2.15.2",
+        "y-protocols": "^1.0.6",
+        "yjs": "^13.6.24"
+    },
+    "packageManager": "pnpm@8.15.9+sha512.499434c9d8fdd1a2794ebf4552b3b25c0a633abcee5bb15e7b5de90f32f47b513aca98cd5cfd001c31f0db454bc3804edccd578501e4ca293a6816166bbd9f81",
+    "devDependencies": {
+        "@eslint/js": "^9.24.0",
+        "@types/node": "^22.14.1",
+        "eslint": "^9.24.0",
+        "knip": "^5.50.4",
+        "tsx": "^4.19.3",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.29.1"
+    }
 }

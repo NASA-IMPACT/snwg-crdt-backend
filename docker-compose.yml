@@ -8,4 +8,9 @@ services:
       - "${APP_PORT}:8001"
     environment:
       APP_SQLITE_DB: /db/db.sqlite
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:?error}
+      COGNITO_USER_CLIENT_ID: ${COGNITO_USER_CLIENT_ID:?error}
+      # FIXME: Add a default value later
+      COGNITO_ISSUER: ${COGNITO_ISSUER:?error}
+
     command: sh -c 'pnpm install && pnpm start --host'

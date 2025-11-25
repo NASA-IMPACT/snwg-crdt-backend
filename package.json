@@ -16,6 +16,7 @@
         "@hocuspocus/extension-logger": "^2.15.2",
         "@hocuspocus/extension-sqlite": "^2.15.2",
         "@hocuspocus/server": "^2.15.2",
+        "aws-jwt-verify": "^5.1.1",
         "y-protocols": "^1.0.6",
         "yjs": "^13.6.24"
     },
@@ -28,5 +29,10 @@
         "tsx": "^4.19.3",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.29.1"
+    },
+    "pnpm": {
+        "patchedDependencies": {
+            "aws-jwt-verify@5.1.1": "patches/aws-jwt-verify@5.1.1.patch"
+        }
     }
 }

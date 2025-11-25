@@ -1,0 +1,105 @@
+diff --git a/cognito-verifier.d.ts b/cognito-verifier.d.ts
+index c9b17c8f0ae7a91cf932f105b8fcca067765530c..d6b9ef00d73ff673980a58ea81a5ab6ad17642d4 100644
+--- a/cognito-verifier.d.ts
++++ b/cognito-verifier.d.ts
+@@ -60,6 +60,7 @@ export interface CognitoVerifyProperties {
+ export type CognitoJwtVerifierProperties = {
+     /** The User Pool whose JWTs you want to verify */
+     userPoolId: string;
++    overrideIssuer?: string;
+ } & Partial<CognitoVerifyProperties>;
+ /**
+  * Type for Cognito JWT verifier properties, when multiple User Pools are used in the verifier.
+@@ -68,6 +69,7 @@ export type CognitoJwtVerifierProperties = {
+ export type CognitoJwtVerifierMultiProperties = {
+     /** The User Pool whose JWTs you want to verify */
+     userPoolId: string;
++    overrideIssuer?: string;
+ } & CognitoVerifyProperties;
+ /**
+  * Cognito JWT Verifier for a single user pool
+@@ -124,7 +126,7 @@ export declare class CognitoJwtVerifier<SpecificVerifyProperties extends Partial
+      * @param userPoolId The User Pool ID
+      * @returns The issuer and JWKS URI for the User Pool
+      */
+-    static parseUserPoolId(userPoolId: string): {
++    static parseUserPoolId(userPoolId: string, overrideIssuer: string | undefined): {
+         issuer: string;
+         jwksUri: string;
+     };
+diff --git a/dist/esm/cognito-verifier.js b/dist/esm/cognito-verifier.js
+index c858b15171f0dda5076d59341a18e53c8908ae59..168b2828343b63c4ed7a2e9bf2ee3df18c4f1a28 100644
+--- a/dist/esm/cognito-verifier.js
++++ b/dist/esm/cognito-verifier.js
+@@ -48,13 +48,21 @@ export class CognitoJwtVerifier extends JwtVerifierBase {
+         const issuerConfig = Array.isArray(props)
+             ? props.map((p) => ({
+                 ...p,
+-                ...CognitoJwtVerifier.parseUserPoolId(p.userPoolId),
++                ...CognitoJwtVerifier.parseUserPoolId(
++                    p.userPoolId,
++                    p.overrideIssuer,
++                ),
+                 audience: null, // checked instead by validateCognitoJwtFields
++                overrideIssuer: undefined,
+             }))
+             : {
+                 ...props,
+-                ...CognitoJwtVerifier.parseUserPoolId(props.userPoolId),
++                ...CognitoJwtVerifier.parseUserPoolId(
++                    props.userPoolId,
++                    props.overrideIssuer,
++                ),
+                 audience: null, // checked instead by validateCognitoJwtFields
++                overrideIssuer: undefined,
+             };
+         super(issuerConfig, jwksCache);
+     }
+@@ -64,13 +72,20 @@ export class CognitoJwtVerifier extends JwtVerifierBase {
+      * @param userPoolId The User Pool ID
+      * @returns The issuer and JWKS URI for the User Pool
+      */
+-    static parseUserPoolId(userPoolId) {
++    static parseUserPoolId(userPoolId, overrideIssuer) {
+         const match = userPoolId.match(this.USER_POOL_ID_REGEX);
+         if (!match) {
+             throw new ParameterValidationError(`Invalid Cognito User Pool ID: ${userPoolId}`);
+         }
+         const region = match.groups.region;
+-        const issuer = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`;
++        const issuer = !overrideIssuer
++            ? `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`
++            : `${overrideIssuer}/${userPoolId}`
++
++        if (!overrideIssuer) {
++            throw Error();
++        }
++
+         return {
+             issuer,
+             jwksUri: `${issuer}/.well-known/jwks.json`,
+diff --git a/dist/esm/https-node.js b/dist/esm/https-node.js
+index 182207d44b1cd777d038eecd1b6e47a11b4094c6..ac54370bbba00623baf7fa8ef888f5e3e471009e 100644
+--- a/dist/esm/https-node.js
++++ b/dist/esm/https-node.js
+@@ -3,6 +3,7 @@
+ //
+ // NodeJS implementation for fetching documents over HTTPS
+ import { request } from "https";
++import { request as requestHttp } from "http";
+ import { pipeline } from "stream";
+ import { FetchError, NonRetryableFetchError } from "./error.js";
+ /**
+@@ -15,7 +16,11 @@ import { FetchError, NonRetryableFetchError } from "./error.js";
+ export async function fetch(uri, requestOptions, data) {
+     let responseTimeout;
+     return new Promise((resolve, reject) => {
+-        const req = request(uri, {
++        const actualRequest = uri.startsWith("http://")
++            ? requestHttp
++            : request;
++
++        const req = actualRequest(uri, {
+             method: "GET",
+             ...requestOptions,
+         }, (response) => {

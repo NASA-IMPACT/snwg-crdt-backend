@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  aws-jwt-verify@5.1.1:
+    hash: mao7pcobjo4vzluhs7bve4feci
+    path: patches/aws-jwt-verify@5.1.1.patch
+
 dependencies:
   '@hocuspocus/extension-logger':
     specifier: ^2.15.2
@@ -14,6 +19,9 @@ dependencies:
   '@hocuspocus/server':
     specifier: ^2.15.2
     version: 2.15.2(y-protocols@1.0.6)(yjs@13.6.24)
+  aws-jwt-verify:
+    specifier: ^5.1.1
+    version: 5.1.1(patch_hash=mao7pcobjo4vzluhs7bve4feci)
   y-protocols:
     specifier: ^1.0.6
     version: 1.0.6(yjs@13.6.24)
@@ -722,6 +730,12 @@ packages:
   /async-lock@1.4.1:
     resolution: {integrity: sha512-Az2ZTpuytrtqENulXwO3GGv1Bztugx6TT37NIo7imr/Qo0gsYiGtSdBa2B6fsXhTpVZDNfu1Qn3pk531e3q+nQ==}
     dev: false
+
+  /aws-jwt-verify@5.1.1(patch_hash=mao7pcobjo4vzluhs7bve4feci):
+    resolution: {integrity: sha512-j6whGdGJmQ27agk4ijY8RPv6itb8JLb7SCJ86fEnneTcSBrpxuwL8kLq6y5WVH95aIknyAloEqAsaOLS1J8ITQ==}
+    engines: {node: '>=18.0.0'}
+    dev: false
+    patched: true
 
   /balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}

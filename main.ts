@@ -1,9 +1,7 @@
 import { Server } from '@hocuspocus/server'
-import { SQLite } from '@hocuspocus/extension-sqlite'
 import { Logger } from '@hocuspocus/extension-logger';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
-
-const sqliteDb = process.env.APP_SQLITE_DB;
+import { S3 } from '@hocuspocus/extension-s3';
 
 const userPoolId = process.env.COGNITO_USER_POOL_ID;
 const clientId = process.env.COGNITO_USER_CLIENT_ID;
@@ -40,8 +38,11 @@ async function verifyJwt(token: string) {
 const server = Server.configure({
     port: 8001,
     extensions: [
-        new SQLite({
-            database: sqliteDb,
+        new S3({
+            bucket: process.env.S3_BUCKET,
+            region: process.env.AWS_DEFAULT_REGION,
+            endpoint: process.env.S3_CUSTOM_ENDPOINT,
+            forcePathStyle: true,
         }),
         new Logger()
     ],
@@ -70,7 +71,7 @@ const server = Server.configure({
         // Check user permissions from token
         const id = value['cognito:username'];
         const groups = value['cognito:groups'];
-        if (!groups || !groups.includes('curator')) {
+        if (!groups || !(groups.includes('curator') || groups.includes('reviewer'))) {
             throw new Error("Only curators can edit documents");
         }
 

@@ -13,4 +13,10 @@ services:
       # FIXME: Add a default value later
       COGNITO_ISSUER: ${COGNITO_ISSUER:?error}
 
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:?error}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:?error}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:?error}
+      S3_BUCKET: ${S3_BUCKET:?error}
+      S3_CUSTOM_ENDPOINT: ${S3_CUSTOM_ENDPOINT:?error}
+
     command: sh -c 'pnpm install && pnpm start --host'

@@ -4,25 +4,32 @@
     "description": "Lwang server",
     "type": "module",
     "scripts": {
-        "lint:js": "eslint main.ts",
+        "lint:js": "eslint app/main.ts",
         "lint:unused": "knip --tags=-knipignore",
         "lint:ts": "tsc",
-        "start": "tsx main.ts"
+        "serve": "tsx watch app/main.ts",
+        "run": "tsx app/main.ts"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@hocuspocus/extension-logger": "^2.15.3",
+        "@hocuspocus/extension-logger": "^3.4.0",
         "@hocuspocus/extension-s3": "^3.4.0",
-        "@hocuspocus/server": "^2.15.3",
+        "@hocuspocus/server": "^3.4.0",
+        "@slate-yjs/core": "^1.0.2",
         "aws-jwt-verify": "^5.1.1",
+        "envalid": "^8.1.1",
+        "express": "^5.1.0",
+        "express-ws": "^5.0.2",
         "y-protocols": "^1.0.6",
         "yjs": "^13.6.27"
     },
     "packageManager": "pnpm@8.15.9+sha512.499434c9d8fdd1a2794ebf4552b3b25c0a633abcee5bb15e7b5de90f32f47b513aca98cd5cfd001c31f0db454bc3804edccd578501e4ca293a6816166bbd9f81",
     "devDependencies": {
         "@eslint/js": "^9.24.0",
+        "@types/express": "^5.0.5",
+        "@types/express-ws": "^3.0.6",
         "@types/node": "^22.14.1",
         "eslint": "^9.24.0",
         "knip": "^5.50.4",

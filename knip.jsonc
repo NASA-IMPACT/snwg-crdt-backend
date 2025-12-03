@@ -3,10 +3,10 @@
     "workspaces": {
         "app": {
             "entry": [
-                "main.ts!"
+                "app/main.ts!"
             ],
             "project": [
-                "main.ts!"
+                "app/main.ts!"
             ]
         }
     }

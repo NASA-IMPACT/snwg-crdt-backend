@@ -1,7 +1,7 @@
 {
-    "name": "lwang-server",
+    "name": "snwg-crdt-backend",
     "version": "1.0.0",
-    "description": "Lwang server",
+    "description": "SNWG CRDT backend",
     "type": "module",
     "scripts": {
         "lint:js": "eslint app/main.ts",

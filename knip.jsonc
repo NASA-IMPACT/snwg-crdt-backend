@@ -1,14 +1,14 @@
 {
     "$schema": "https://unpkg.com/knip@5/schema.json",
-    "workspaces": {
-        "app": {
-            "entry": [
-                "app/main.ts!"
-            ],
-            "project": [
-                "app/main.ts!"
-            ]
-        }
-    }
+    "entry": [
+        "app/main.ts!"
+    ],
+    "ignoreDependencies": [
+        "nodemon"
+    ],
+    "project": [
+        "app/**/*.ts",
+        "generated/**/*.ts"
+    ]
 }
 

@@ -40,10 +40,11 @@ export const hocuspocusServer = new Hocuspocus({
 
         document.transact(() => {
             const state = document.getMap('__update_states__');
-            const previous_no_of_updates = state.get('no_of_updates') as (number | undefined) ?? 0;
 
-            state.set('last_upated', new Date().getTime());
+            const previous_no_of_updates = state.get('no_of_updates') as (number | undefined) ?? 0;
             state.set('no_of_updates', previous_no_of_updates + 1);
+
+            state.set('last_updated', new Date().getTime());
         });
     },
     onAuthenticate: async (data) => {

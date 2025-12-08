@@ -19,4 +19,4 @@ services:
       S3_BUCKET: ${S3_BUCKET:-snwg-rgt-dev-files}
       S3_CUSTOM_ENDPOINT: ${S3_CUSTOM_ENDPOINT:?error}
 
-    command: sh -c 'pnpm install && pnpm serve --host'
+    command: sh -c 'pnpm install && pnpm tsoa:generate && pnpm dev'

@@ -1,20 +1,19 @@
 import express from 'express';
-import expressWebsockets from 'express-ws';
+import { ValidateError } from "tsoa";
+
+import { AuthError } from './authentication.ts';
 
 import { hocuspocusServer } from './core/hocuspocus.ts';
-import { authMiddleware } from './core/express.ts';
-import documentsRouter from './routes/documents.ts';
+import { expressServer, PORT } from './core/express.ts';
+
+import { RegisterRoutes } from "../generated/routes.ts";
 
 /* TODO:
 - Configure express extentions
     - compression
     - cors
-    - morgan
     - timeout
     - helmet
-- Setup OAS
-    - swagger-ui
-    - open api specification generation
 - Setup error monitoring
 
 - Check if document exists on the backend and user has write access
@@ -25,24 +24,50 @@ import documentsRouter from './routes/documents.ts';
 - Migrate documents when versions change?
 */
 
-const PORT = 8001;
-
-const { app } = expressWebsockets(express());
-
-app.ws('/collaboration/', (websocket, request) => {
+// Register collaboration endpoint to upgrade to websocket
+expressServer.ws('/collaboration/', (websocket, request) => {
     hocuspocusServer.handleConnection(websocket, request)
 });
 
-app.get('/collaboration/status', authMiddleware, (_, response) => {
-    response.json({
-        openDocuments: hocuspocusServer.getDocumentsCount(),
-        openConnections: hocuspocusServer.getConnectionsCount(),
-    });
-});
+// Register other routes from tsoa
+RegisterRoutes(expressServer);
 
-app.use('/documents/:name', documentsRouter);
+// Handle 404 errors
+expressServer.use(
+    (_req: express.Request, res: express.Response) => {
+        res.status(404).send({
+            message: "Resource not found",
+        });
+    },
+);
 
-app.listen(
+// Handle other errors
+expressServer.use(
+    (err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if (err instanceof ValidateError) {
+            console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
+            return res.status(422).json({
+                message: "Validation failed",
+                details: err?.fields,
+            });
+        }
+        if (err instanceof AuthError) {
+            return res.status(401).send({
+                message: err.message,
+            });
+        }
+        if (err instanceof Error) {
+            return res.status(500).json({
+                message: "Internal Server Error",
+            });
+        }
+        console.error('Uncaught error', err);
+        next();
+    },
+);
+
+// Listen to requests
+expressServer.listen(
     PORT,
     () => {
         console.log(`Listening on http://127.0.0.1:${PORT}`)

@@ -1,38 +1,27 @@
-import { Response, Request, NextFunction } from 'express';
+import express from 'express';
+import expressWebsockets from 'express-ws';
+import fs from 'fs';
+import yaml from 'yaml';
+import swaggerUi from 'swagger-ui-express';
+import morgan from 'morgan';
 
-import { verifyJwt } from '../utils/jwt.ts';
-import env from '../utils/env.ts';
 
-export async function authMiddleware(
-    request: Request,
-    response: Response,
-    next: NextFunction
-) {
-    const authHeader = request.header('Authorization');
+export const PORT = 8001;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return response.status(401).json({ message: 'Missing or invalid Authorization header' });
-    }
+const expressApp = express();
+export const { app: expressServer } = expressWebsockets(expressApp);
 
-    const token = authHeader.replace(/^Bearer /, '');
+// Setup logger
+expressServer.use(morgan('dev'));
 
-    const tokenData = await verifyJwt(
-        token,
-        env.COGNITO_USER_POOL_ID,
-        env.COGNITO_USER_CLIENT_ID,
-        env.COGNITO_ISSUER,
-    );
-    if (!tokenData) {
-        response.status(401).json({ message: 'Invalid token' });
-    } else {
-        const id = tokenData['cognito:username'];
-        const groups = tokenData['cognito:groups'];
-        response.locals.user = {
-            id: id as string,
-            username: tokenData.preferred_username as string,
-            email: tokenData.email as string,
-            groups: groups as string[],
-        };
-        next();
-    }
-};
+// Support swagger
+expressServer.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Response) => {
+    // NOTE: Using YAML because JSON giving error
+    // https://gitlab.com/gitlab-org/gitlab/-/issues/379097
+
+    const file  = fs.readFileSync('./generated/swagger.yaml', 'utf8')
+    const swaggerDocument = yaml.parse(file)
+
+    const swaggerHtml = swaggerUi.generateHTML(swaggerDocument);
+    return res.send(swaggerHtml);
+});

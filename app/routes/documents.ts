@@ -3,6 +3,7 @@ import {
     Route,
     Get,
     Post,
+    Delete,
     Security,
     Tags,
     Path,
@@ -10,7 +11,7 @@ import {
 import * as Y from 'yjs'
 import { yTextToSlateElement } from '@slate-yjs/core';
 
-import { hocuspocusServer, getDocument } from '../core/hocuspocus.ts';
+import { hocuspocusServer, getDocument, removeDocument } from '../core/hocuspocus.ts';
 
 /**
  * Unix timestamp in seconds
@@ -21,15 +22,21 @@ type UnixTimestamp = number;
 /**
  * Represents the updates of the document regarding updates
  */
-interface DocumentResetInfo {
-    documentName?: string;
+interface DocumentDeleteResponse {
+    documentName: string;
+}
+
+/**
+ * Represents the updates of the document regarding updates
+ */
+interface DocumentResetUpdateStatesResponse {
+    documentName: string;
     lastUpdated?: UnixTimestamp;
     /**
      * @isInt
      */
     noOfUpdates?: number;
 }
-
 
 /**
  * Represents the status of the document regarding updates
@@ -42,7 +49,7 @@ interface DocumentUpdateStates {
     no_of_updates?: number;
 }
 
-// FIXME: Use actual slate.Element
+// TODO: Use actual slate.Element
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SlateElement = Record<string, any>;
 
@@ -63,13 +70,27 @@ interface Document {
 @Route("/documents/")
 export class DocumentController extends Controller {
      /**
+     * Delete the document.
+     */
+    @Delete("/{name}")
+    @Security("jwt", ["write"])
+    public async deleteDocument(
+        @Path() name: string,
+    ): Promise<DocumentDeleteResponse> {
+        removeDocument(name);
+        return {
+            documentName: name,
+        };
+    }
+
+     /**
      * Reset the document update information.
      */
-    @Post("/{name}/reset")
+    @Post("/{name}/reset-update-states")
     @Security("jwt", ["write"])
     public async resetDocument(
         @Path() name: string,
-    ): Promise<DocumentResetInfo> {
+    ): Promise<DocumentResetUpdateStatesResponse> {
         const lastUpdated = new Date().getTime();
         const noOfUpdates = 0;
 

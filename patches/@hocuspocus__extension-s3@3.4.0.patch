@@ -1,0 +1,39 @@
+diff --git a/dist/packages/extension-s3/src/S3.d.ts b/dist/packages/extension-s3/src/S3.d.ts
+index 4d2da254390f6db5aed63dc7c79a35ec8b5929e5..0217c26d2ee90dce35cb4a8ebb127ae03f1c61b1 100644
+--- a/dist/packages/extension-s3/src/S3.d.ts
++++ b/dist/packages/extension-s3/src/S3.d.ts
+@@ -35,10 +35,10 @@ export interface S3Configuration extends DatabaseConfiguration {
+     s3Client?: S3Client;
+ }
+ export declare class S3 extends Database {
+-    private s3Client?;
++    protected s3Client?: S3Client;
+     configuration: S3Configuration;
+     constructor(configuration: Partial<S3Configuration>);
+-    private getObjectKey;
++    protected getObjectKey: (documentName: string) => string;
+     onConfigure(): Promise<void>;
+     onListen(): Promise<void>;
+ }
+diff --git a/src/S3.ts b/src/S3.ts
+index 3015bd9ff5657542f7bbf8d3b90dc92d119a0916..75050be76186ce533ecf4ceaa356908b6ac294fe 100644
+--- a/src/S3.ts
++++ b/src/S3.ts
+@@ -43,7 +43,7 @@ export interface S3Configuration extends DatabaseConfiguration {
+ }
+ 
+ export class S3 extends Database {
+-	private s3Client?: S3Client;
++	protected s3Client?: S3Client;
+ 
+ 	configuration: S3Configuration = {
+ 		region: "us-east-1",
+@@ -128,7 +128,7 @@ export class S3 extends Database {
+ 		}
+ 	}
+ 
+-	private getObjectKey(documentName: string): string {
++	protected getObjectKey(documentName: string): string {
+ 		const prefix = this.configuration.prefix || "";
+ 		return `${prefix}${documentName}.bin`;
+ 	}

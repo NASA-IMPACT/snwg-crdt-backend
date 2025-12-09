@@ -5,17 +5,23 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@hocuspocus/extension-s3@3.4.0':
+    hash: xxve32gz7rr643umuvfd2qxwwa
+    path: patches/@hocuspocus__extension-s3@3.4.0.patch
   aws-jwt-verify@5.1.1:
     hash: mao7pcobjo4vzluhs7bve4feci
     path: patches/aws-jwt-verify@5.1.1.patch
 
 dependencies:
+  '@aws-sdk/client-s3':
+    specifier: ^3.940.0
+    version: 3.940.0
   '@hocuspocus/extension-logger':
     specifier: ^3.4.0
     version: 3.4.0(y-protocols@1.0.6)(yjs@13.6.27)
   '@hocuspocus/extension-s3':
     specifier: ^3.4.0
-    version: 3.4.0(y-protocols@1.0.6)(yjs@13.6.27)
+    version: 3.4.0(patch_hash=xxve32gz7rr643umuvfd2qxwwa)(y-protocols@1.0.6)(yjs@13.6.27)
   '@hocuspocus/server':
     specifier: ^3.4.0
     version: 3.4.0(y-protocols@1.0.6)(yjs@13.6.27)
@@ -1039,7 +1045,7 @@ packages:
       - yjs
     dev: false
 
-  /@hocuspocus/extension-s3@3.4.0(y-protocols@1.0.6)(yjs@13.6.27):
+  /@hocuspocus/extension-s3@3.4.0(patch_hash=xxve32gz7rr643umuvfd2qxwwa)(y-protocols@1.0.6)(yjs@13.6.27):
     resolution: {integrity: sha512-96gpSOxI+PQVFdojb9EIkwoaxWAA5M0o4ZHBs4kobGSCyYWp1Ba/eGVUGTpofOs6HTc4tTod1xwIZFD8CNVMHQ==}
     dependencies:
       '@aws-sdk/client-s3': 3.940.0
@@ -1052,6 +1058,7 @@ packages:
       - y-protocols
       - yjs
     dev: false
+    patched: true
 
   /@hocuspocus/server@3.4.0(y-protocols@1.0.6)(yjs@13.6.27):
     resolution: {integrity: sha512-ludVWFkos7FgOmdGxn5UxhV7H0K4mMly8mq+wXAK8fOuW+9vrjQDfd23tOOcQPbZ0aGyPC0FMmEZ1GsFpVArCg==}

@@ -11,6 +11,8 @@ const env = cleanEnv(process.env, {
     AWS_DEFAULT_REGION: str(),
     S3_BUCKET: str(),
     S3_CUSTOM_ENDPOINT: url(),
+
+    API_ENDPOINT: url(),
 });
 
 export default env;

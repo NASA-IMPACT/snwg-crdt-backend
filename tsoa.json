@@ -9,7 +9,7 @@
         "description": "API for SNWG CRDT Backend",
         "yaml": true,
         "securityDefinitions": {
-            "bearerAuth": {
+            "jwt": {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT"

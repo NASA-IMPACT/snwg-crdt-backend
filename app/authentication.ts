@@ -17,7 +17,7 @@ export async function expressAuthentication(
     // scopes?: string[]
 ) {
     if (securityName !== 'jwt') {
-        throw new Error('Security name should be "jwt"')
+        throw Error('Security name should be "jwt"')
     }
 
     const authHeader = request.header('Authorization');

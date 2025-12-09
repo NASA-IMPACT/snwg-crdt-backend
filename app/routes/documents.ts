@@ -8,16 +8,14 @@ import {
     Tags,
     Path,
 } from "tsoa";
-import * as Y from 'yjs'
-import { yTextToSlateElement } from '@slate-yjs/core';
 
 import { hocuspocusServer, getDocument, removeDocument } from '../core/hocuspocus.ts';
-
-/**
- * Unix timestamp in seconds
- * @isLong
- */
-type UnixTimestamp = number;
+import {
+    docToSlateRepresentation,
+    mutateUpdateStates,
+    type Document,
+    type UnixTimestamp,
+} from '../core/document.ts';
 
 /**
  * Represents the updates of the document regarding updates
@@ -36,34 +34,6 @@ interface DocumentResetUpdateStatesResponse {
      * @isInt
      */
     noOfUpdates?: number;
-}
-
-/**
- * Represents the status of the document regarding updates
- */
-interface DocumentUpdateStates {
-    last_updated?: UnixTimestamp;
-    /**
-     * @isInt
-     */
-    no_of_updates?: number;
-}
-
-// TODO: Use actual slate.Element
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SlateElement = Record<string, any>;
-
-/**
- * Represents the document data in slate's data model
- */
-interface Document {
-    __update_states__?: DocumentUpdateStates | null,
-    decadal_survey?: SlateElement | null,
-    detailed_assessment?: SlateElement | null,
-    missions_phase_c?: SlateElement | null,
-    resources?: SlateElement | null,
-    synopsis?: SlateElement | null,
-    training_resources?: SlateElement | null,
 }
 
 @Tags("Documents")
@@ -91,21 +61,19 @@ export class DocumentController extends Controller {
     public async resetDocument(
         @Path() name: string,
     ): Promise<DocumentResetUpdateStatesResponse> {
-        const lastUpdated = new Date().getTime();
-        const noOfUpdates = 0;
+        const updateStates = {
+            last_updated: new Date().getTime(),
+            no_of_updates: 0,
+        };
 
         const connection = await hocuspocusServer.openDirectConnection(name);
-        connection.transact((document) => {
-            const state = document.getMap('__update_states__')
-            state.set('last_updated', lastUpdated);
-            state.set('no_of_updates', noOfUpdates);
-        });
+        mutateUpdateStates(connection, () => updateStates)
         await connection.disconnect();
 
         return {
             documentName: name,
-            lastUpdated,
-            noOfUpdates,
+            lastUpdated: updateStates.last_updated,
+            noOfUpdates: updateStates.no_of_updates,
         };
     }
 
@@ -122,32 +90,6 @@ export class DocumentController extends Controller {
             this.setStatus(404);
             throw new Error('Document not found');
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const schema: Record<keyof Document, any> = {
-            __update_states__: Y.Map,
-            decadal_survey: Y.XmlText,
-            detailed_assessment: Y.XmlText,
-            missions_phase_c: Y.XmlText,
-            resources: Y.XmlText,
-            synopsis: Y.XmlText,
-            training_resources: Y.XmlText,
-        };
-
-        const data: Document = {}
-        Object.entries(schema).forEach(([key, type]) => {
-            const safeKey = key as (keyof Document);
-            const value = document.get(key, type);
-            if (type == Y.XmlText) {
-                const val = yTextToSlateElement(value)
-                data[safeKey] = val;
-            } else if (type == Y.Map) {
-                data[safeKey] = value.toJSON();
-            } else {
-                data[safeKey] = null;
-            }
-        });
-
-        return data;
+        return docToSlateRepresentation(document);
     }
 }

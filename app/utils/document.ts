@@ -12,4 +12,5 @@ export function validateDocumentName(documentName: string) {
     if (!/^\d+$/.test(id)) {
         throw Error('Document id should be an integer');
     }
+    return { prefix, version, id: Number(id) };
 }

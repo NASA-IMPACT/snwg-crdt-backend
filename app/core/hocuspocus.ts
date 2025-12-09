@@ -26,6 +26,26 @@ export const hocuspocusServer = new Hocuspocus({
         const { documentName } = data;
         validateDocumentName(documentName);
     },
+    onLoadDocument: async (data) => {
+        const update = await s3Extension.configuration.fetch(data);
+        if (update !== null) {
+            Y.applyUpdate(data.document, update);
+            return data.document;
+        }
+
+        const { id } = validateDocumentName(data.documentName);
+        const BACKEND_API = 'http://localhost:8000';
+        const response = await fetch(
+            `${BACKEND_API}/v2/reports/${id}/versions/v1.0`,
+            {
+                headers: new Headers({
+                    'Authorization': `Bearer ${data.context.token}`,
+                }),
+            }
+        );
+        console.log(response);
+        throw Error('Could not');
+    },
     onChange: async (data) => {
         const {
             document,
@@ -75,6 +95,7 @@ export const hocuspocusServer = new Hocuspocus({
                 username: tokenData.preferred_username as string,
                 email: tokenData.email as string,
                 groups: groups as string[],
+                token,
             },
         }
         return context;

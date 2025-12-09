@@ -9,19 +9,21 @@ import { expressServer, PORT } from './core/express.ts';
 import { RegisterRoutes } from "../generated/routes.ts";
 
 /* TODO:
-- Configure express extentions
-    - compression
-    - cors
-    - timeout
-    - helmet
-- Setup error monitoring
-
-- Check if document exists on the backend and user has write access
-    - Add API on backend to check for user access
-- Check updated authentication token
-    - beforeHandleMessage and onTokenSync
-- Add background check to see if document schema version has changed between client and server
-- Migrate documents when versions change?
+- HIGH
+    - Check if document exists on the backend and user has write access
+        - Add API on backend to check for user access
+- MEDIUM
+    - Check updated authentication token
+        - beforeHandleMessage and onTokenSync
+- LOW
+    - Add background check to see if document schema version has changed between client and server
+    - Migrate documents when versions change?
+    - Configure express extentions
+        - compression
+        - cors
+        - timeout
+        - helmet
+    - Setup error monitoring
 */
 
 // Register collaboration endpoint to upgrade to websocket

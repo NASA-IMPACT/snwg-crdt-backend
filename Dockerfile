@@ -1,4 +1,4 @@
-FROM node:23-bookworm AS base
+FROM node:lts-bookworm AS base
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
@@ -10,6 +10,7 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
 COPY ./package.json ./pnpm-lock.yaml /code/
+COPY ./patches /code/patches
 
 WORKDIR /code
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile

@@ -2,41 +2,18 @@ import * as Y from 'yjs'
 import { Connection, Hocuspocus, type Extension } from '@hocuspocus/server'
 import { Logger } from '@hocuspocus/extension-logger';
 import { S3 } from '@hocuspocus/extension-s3';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 
 import {
-    docToYjsRepresentation,
     fetchReport,
-    mutateUpdateStates,
-} from '../core/document.ts';
+    slateReportToDoc,
+    changeYjsReportUpdateStates,
+} from '../utils/report.ts';
 import { verifyJwt } from '../utils/jwt.ts';
-import { validateDocumentName } from '../utils/document.ts';
+import { validateDocName } from '../utils/doc.ts';
 import env from '../utils/env.ts';
 
-class ExtendedS3 extends S3 {
-    async deleteObject(documentName: string) {
-        try {
-            const command = new DeleteObjectCommand({
-                Bucket: this.configuration.bucket,
-                Key: this.getObjectKey(documentName),
-            });
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            await this.s3Client!.send(command);
-
-            return true;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
-                // Document doesn't exist yet, return null
-                return true;
-            }
-            throw error;
-        }
-    }
-}
-
 // Configure hocuspocus extentions
-const s3Extension = new ExtendedS3({
+const s3Extension = new S3({
     bucket: env.S3_BUCKET,
     region: env.AWS_DEFAULT_REGION,
     endpoint: env.S3_CUSTOM_ENDPOINT,
@@ -53,10 +30,10 @@ export const hocuspocusServer = new Hocuspocus({
     ],
     onConnect: async (data) => {
         const { documentName, context } = data;
-        const document = validateDocumentName(documentName);
+        const docInfo = validateDocName(documentName);
         return {
             ...context,
-            document,
+            doc: docInfo,
         };
     },
     onAuthenticate: async (data) => {
@@ -94,9 +71,9 @@ export const hocuspocusServer = new Hocuspocus({
     },
     onLoadDocument: async (data) => {
         // NOTE: We can load the data from extension directly if it exists in s3
-        const update = await s3Extension.configuration.fetch(data);
-        if (update !== null) {
-            Y.applyUpdate(data.document, update);
+        const updateFromS3 = await s3Extension.configuration.fetch(data);
+        if (updateFromS3 !== null) {
+            Y.applyUpdate(data.document, updateFromS3);
             console.log(`Loaded document "${data.documentName}" from s3`);
             return data.document;
         }
@@ -109,12 +86,12 @@ export const hocuspocusServer = new Hocuspocus({
 
         // NOTE: If document not in S3, get from server
         const { token } = data.context.user;
-        const { id } = data.context.document;
-        const latestVersionDocument = await fetchReport(id, token);
+        const { id } = data.context.doc;
+        const reportV1 = await fetchReport(id, token);
 
-        const doc = docToYjsRepresentation(latestVersionDocument.document);
-        const newUpdate = Y.encodeStateAsUpdate(doc);
-        Y.applyUpdate(data.document, newUpdate);
+        const reportDoc = slateReportToDoc(reportV1.document);
+        const reportUpdate = Y.encodeStateAsUpdate(reportDoc);
+        Y.applyUpdate(data.document, reportUpdate);
         console.log(`Loaded document "${data.documentName}" from API`);
         return data.document;
     },
@@ -130,47 +107,28 @@ export const hocuspocusServer = new Hocuspocus({
             return;
         }
 
-        mutateUpdateStates(
-            document,
-            (oldValue) => ({
-                no_of_updates: (oldValue?.no_of_updates ?? 0) + 1,
-                last_updated: new Date().getTime(),
-            }),
-        );
+        document.transact(() => {
+            changeYjsReportUpdateStates(
+                document,
+                (oldValue) => ({
+                    no_of_updates: (oldValue?.no_of_updates ?? 0) + 1,
+                    last_updated: new Date().getTime(),
+                }),
+            );
+        });
     },
 })
 
-// Remove a document from hocuspocus and s3
-export async function removeDocument(name: string) {
-    // Unload document from memory
-    const doc = hocuspocusServer.documents.get(name);
-    if (doc) {
-        doc.connections.forEach(({ connection }) => {
-            connection.close({
-                code: 4205,
-                reason: "Reset Connection",
-            });
-            connection.webSocket.close();
-        });
-        doc.destroy();
-        await hocuspocusServer.unloadDocument(doc);
-    }
-
-    // Delete document from persistent storage
-    s3Extension.deleteObject(name);
-}
-
 // Get a document from hocuspocus or s3
-export async function getDocument(name: string) {
+export async function getDoc(name: string) {
     const doc = hocuspocusServer.documents.get(name)
     if (doc) {
         return doc;
     }
     const s3Doc = new Y.Doc();
 
-    const fetched = await s3Extension.configuration.fetch({
-        documentName: name,
-    } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fetched = await s3Extension.configuration.fetch({ documentName: name, } as any);
     if (!fetched) {
         return undefined;
     }

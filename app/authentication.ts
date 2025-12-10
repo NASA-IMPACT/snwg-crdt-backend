@@ -42,5 +42,6 @@ export async function expressAuthentication(
         username: tokenData.preferred_username as string,
         email: tokenData.email as string,
         groups: groups as string[],
+        token,
     };
 }

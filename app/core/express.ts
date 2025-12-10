@@ -14,7 +14,7 @@ export const { app: expressServer } = expressWebsockets(expressApp);
 // Setup logger
 expressServer.use(morgan('dev'));
 
-// Support swagger
+// Support swagger ui
 expressServer.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Response) => {
     // NOTE: Using YAML because JSON giving error
     // https://gitlab.com/gitlab-org/gitlab/-/issues/379097

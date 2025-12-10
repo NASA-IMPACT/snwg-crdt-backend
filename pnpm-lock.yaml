@@ -13,9 +13,6 @@ patchedDependencies:
     path: patches/aws-jwt-verify@5.1.1.patch
 
 dependencies:
-  '@aws-sdk/client-s3':
-    specifier: ^3.940.0
-    version: 3.940.0
   '@hocuspocus/extension-logger':
     specifier: ^3.4.0
     version: 3.4.0(y-protocols@1.0.6)(yjs@13.6.27)

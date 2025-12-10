@@ -16,7 +16,7 @@ interface CollaborationStatus {
     /**
      * @isInt
      */
-    openDocuments: number;
+    openDocs: number;
     /**
      * @isInt
      */
@@ -33,12 +33,12 @@ export class CollaborationController extends Controller {
     @Get("/status/")
     @Security("jwt", ["read"])
     @Example<CollaborationStatus>({
-        openDocuments: 5,
+        openDocs: 5,
         openConnections: 12
     })
     public async getCollaborationStatus(): Promise<CollaborationStatus> {
         return {
-            openDocuments: hocuspocusServer.getDocumentsCount(),
+            openDocs: hocuspocusServer.getDocumentsCount(),
             openConnections: hocuspocusServer.getConnectionsCount(),
         };
     }

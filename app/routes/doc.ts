@@ -8,6 +8,7 @@ import {
     Tags,
     Path,
     Request,
+    ValidateError,
 } from "tsoa";
 import express from 'express';
 
@@ -40,8 +41,24 @@ export class DocController extends Controller {
         @Path() name: string,
         @Request() request: express.Request & { user: { token: string } },
     ): Promise<DocResetResponse> {
-        const { id } = validateDocName(name);
+        const  docInfo = validateDocName(name);
+        if (docInfo instanceof Error) {
+            // NOTE: Express error handler handles ValidateError
+            throw new ValidateError(
+                { name: { message: docInfo.message, value: name  } },
+                'Validation Failed',
+            )
+        }
+
+        const { id } = docInfo;
+
+        // FIXME: We can remove fetchReport
         const reportV1 = await fetchReport(id, request.user.token);
+        if (reportV1 instanceof Error) {
+            // NOTE: Express error handler handles Error
+            throw reportV1;
+        }
+
         // TODO: set last_updated and no_of_updates
         const reportDoc = slateReportToDoc(reportV1.document);
         const reportUpdate = Y.encodeStateAsUpdate(reportDoc);
@@ -71,12 +88,18 @@ export class DocController extends Controller {
     public async getDoc(
         @Path() name: string,
     ): Promise<Report> {
-        validateDocName(name);
+        const docInfo = validateDocName(name);
+        if (docInfo instanceof Error) {
+            // NOTE: Express error handler handles ValidateError
+            throw new ValidateError(
+                { name: { message: docInfo.message, value: name  } },
+                'Validation Failed',
+            )
+        }
 
         const doc = await getDoc(name);
-        if (!doc) {
-            this.setStatus(404);
-            throw Error('Document not found');
+        if (doc instanceof Error) {
+            throw doc;
         }
         return docToSlateReport(doc);
     }

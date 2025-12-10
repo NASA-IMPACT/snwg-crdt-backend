@@ -1,7 +1,7 @@
 import express from 'express';
 import { ValidateError } from "tsoa";
 
-import { AuthError } from './authentication.ts';
+import { AuthError } from './utils/error.ts';
 
 import { hocuspocusServer } from './core/hocuspocus.ts';
 import { expressServer, PORT } from './core/express.ts';

@@ -120,30 +120,48 @@ export function changeYjsReportUpdateStates(
     });
 }
 
-/** 
- * @throws {Error}
- */
 export async function fetchReport(reportId: number, authToken: string) {
     const url = `${env.API_ENDPOINT}/v2/reports/${reportId}/versions/v1.0`;
     const authorization = `Bearer ${authToken}`;
-    const response = await fetch(
-        url,
-        {
-            headers: new Headers({
-                'Authorization': authorization,
-                'Accept': 'application/json',
-            }),
+
+    let response;
+    try {
+        response = await fetch(
+            url,
+            {
+                headers: new Headers({
+                    'Authorization': authorization,
+                    'Accept': 'application/json',
+                }),
+            }
+        );
+    } catch (error) {
+        // FIXME: We should check if we want to sanitize the message
+        if (error instanceof Error) {
+            return error;
         }
-    );
-    const responseContent = await response.json() as {
-        versions: {
-            version: string;
-            document: Report;
-        }[];
-    };
+        return Error('Could not fetch report');
+    }
+
+    let responseContent;
+    try {
+        responseContent = await response.json() as {
+            versions: {
+                version: string;
+                document: Report;
+            }[];
+        };
+    } catch (error) {
+        // FIXME: We should check if we want to sanitize the message
+        if (error instanceof Error) {
+            return error;
+        }
+        return Error('Could not parse report as JSON');
+    }
+
     const reportV1 = responseContent.versions.find((item) => item.version === 'v1.0');
     if (!reportV1) {
-        throw Error('Report with version v1.0 not found');
+        return Error('Report with version v1.0 not found');
     }
     return reportV1;
 }

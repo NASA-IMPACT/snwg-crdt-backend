@@ -11,6 +11,7 @@ import {
 import { verifyJwt } from '../utils/jwt.ts';
 import { validateDocName } from '../utils/doc.ts';
 import env from '../utils/env.ts';
+import { NotFoundError } from '../utils/error.ts';
 
 // Configure hocuspocus extentions
 const s3Extension = new S3({
@@ -31,6 +32,12 @@ export const hocuspocusServer = new Hocuspocus({
     onConnect: async (data) => {
         const { documentName, context } = data;
         const docInfo = validateDocName(documentName);
+
+        if (docInfo instanceof Error) {
+            // NOTE: Throwing exception so that connection is not established
+            throw docInfo;
+        }
+
         return {
             ...context,
             doc: docInfo,
@@ -47,7 +54,9 @@ export const hocuspocusServer = new Hocuspocus({
             env.COGNITO_USER_CLIENT_ID,
             env.COGNITO_ISSUER,
         );
-        if (!tokenData) {
+
+        if (tokenData instanceof Error) {
+            // NOTE: Throwing exception so that authenitcation fails
             throw Error("Token must be valid!");
         }
 
@@ -55,6 +64,7 @@ export const hocuspocusServer = new Hocuspocus({
         const id = tokenData['cognito:username'];
         const groups = tokenData['cognito:groups'];
         if (!groups || !(groups.includes('curator') || groups.includes('reviewer'))) {
+            // NOTE: Throwing exception so that authenitcation fails
             throw Error("Only curators/reviewers can edit documents");
         }
 
@@ -74,13 +84,14 @@ export const hocuspocusServer = new Hocuspocus({
         const updateFromS3 = await s3Extension.configuration.fetch(data);
         if (updateFromS3 !== null) {
             Y.applyUpdate(data.document, updateFromS3);
-            console.log(`Loaded document "${data.documentName}" from s3`);
+            console.debug(`Loaded document "${data.documentName}" from s3`);
             return data.document;
         }
 
         // NOTE: This means we are creating a direct connection.
         // In this case, we should not load data from API
         if (!data.context || !data.context.user) {
+            // NOTE: Throwing exception so that empty document is not created
             throw Error(`Could not load document "${data.documentName}" from s3`);
         }
 
@@ -89,10 +100,15 @@ export const hocuspocusServer = new Hocuspocus({
         const { id } = data.context.doc;
         const reportV1 = await fetchReport(id, token);
 
+        if (reportV1 instanceof Error) {
+            // NOTE: Throwing exception so that empty document is not created
+            throw reportV1;
+        }
+
         const reportDoc = slateReportToDoc(reportV1.document);
         const reportUpdate = Y.encodeStateAsUpdate(reportDoc);
         Y.applyUpdate(data.document, reportUpdate);
-        console.log(`Loaded document "${data.documentName}" from API`);
+        console.debug(`Loaded document "${data.documentName}" from API`);
         return data.document;
     },
     onChange: async (data) => {
@@ -125,12 +141,12 @@ export async function getDoc(name: string) {
     if (doc) {
         return doc;
     }
-    const s3Doc = new Y.Doc();
 
+    const s3Doc = new Y.Doc();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fetched = await s3Extension.configuration.fetch({ documentName: name, } as any);
     if (!fetched) {
-        return undefined;
+        return new NotFoundError('Document not found');
     }
 
     Y.applyUpdate(s3Doc, fetched);

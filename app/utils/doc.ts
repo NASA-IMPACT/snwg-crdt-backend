@@ -26,13 +26,13 @@ export interface DocUpdateStatus {
 export function validateDocName(docName: string) {
     const [prefix, version, id] = docName.split('_');
     if (prefix != DOC_PREFIX) {
-        throw Error(`Document name should start with "${DOC_PREFIX}"`);
+        return Error(`Document name should start with "${DOC_PREFIX}"`);
     }
     if (version != SCHEMA_VERSION) {
-        throw Error(`Document schema version should be "${SCHEMA_VERSION}"`);
+        return Error(`Document schema version should be "${SCHEMA_VERSION}"`);
     }
     if (!/^\d+$/.test(id)) {
-        throw Error('Document id should be an integer');
+        return Error('Document id should be an integer');
     }
     return { prefix, version, id: Number(id) };
 }

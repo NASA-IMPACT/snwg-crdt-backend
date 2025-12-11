@@ -1,4 +1,3 @@
-import * as Y from 'yjs'
 import {
     Controller,
     Route,
@@ -19,7 +18,7 @@ import {
     docToSlateReport,
     slateReportToDoc,
     fetchReport,
-    type Report,
+    type CollabReportContent,
 } from '../utils/report.ts';
 
 /**
@@ -52,16 +51,11 @@ export class DocController extends Controller {
 
         const { id } = docInfo;
 
-        // FIXME: We can remove fetchReport
         const reportV1 = await fetchReport(id, request.user.token);
         if (reportV1 instanceof Error) {
             // NOTE: Express error handler handles Error
             throw reportV1;
         }
-
-        // TODO: set last_updated and no_of_updates
-        const reportDoc = slateReportToDoc(reportV1.document);
-        const reportUpdate = Y.encodeStateAsUpdate(reportDoc);
 
         const connection = await hocuspocusServer.openDirectConnection(name);
         const connectionDoc = connection.document;
@@ -70,7 +64,7 @@ export class DocController extends Controller {
             connectionDoc.transact(() => {
                 clearYjsReport(connectionDoc);
                 // Applying data from API
-                Y.applyUpdate(connectionDoc, reportUpdate);
+                slateReportToDoc(reportV1, connectionDoc);
             });
         }
         await connection.disconnect();
@@ -87,7 +81,7 @@ export class DocController extends Controller {
     @Security("jwt", ["read"])
     public async getDoc(
         @Path() name: string,
-    ): Promise<Report> {
+    ): Promise<CollabReportContent> {
         const docInfo = validateDocName(name);
         if (docInfo instanceof Error) {
             // NOTE: Express error handler handles ValidateError

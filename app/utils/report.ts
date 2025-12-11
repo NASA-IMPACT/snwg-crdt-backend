@@ -7,13 +7,26 @@ import {
     type DocUpdateStatus,
     type SlateElement,
 } from './doc.ts';
+import { AuthError, NotFoundError } from './error.ts';
 
+type Completeness = "complete" | "incomplete";
 
 /**
- * Represents the report data in slate's data model
+ * Represents the section completeness of the report
  */
-export interface Report {
+export interface ReportSectionCompleteness {
+    synopsis?: Completeness;
+    assessment_response?: Completeness;
+    summary_sensors_products?: Completeness;
+    training_resources?: Completeness;
+}
+
+/**
+ * Represents the report content
+ */
+interface PureReportContent {
     __update_states__?: DocUpdateStatus | null,
+    sections_completed?: ReportSectionCompleteness | null,
     decadal_survey?: SlateElement | null,
     detailed_assessment?: SlateElement | null,
     missions_phase_c?: SlateElement | null,
@@ -22,10 +35,29 @@ export interface Report {
     training_resources?: SlateElement | null,
 }
 
+/**
+ * Represents the report
+ */
+export interface Report {
+    version: string;
+    document: PureReportContent;
+    last_updated_at: string;
+    sections_completed: ReportSectionCompleteness;
+}
+
+/**
+ * Represents the report content with additional metadata
+ */
+export interface CollabReportContent extends PureReportContent {
+    __update_states__?: DocUpdateStatus | null,
+    sections_completed?: ReportSectionCompleteness | null,
+}
+
 export function docToSlateReport(doc: Y.Doc) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const schema: Record<keyof Report, any> = {
+    const schema: Record<keyof CollabReportContent, any> = {
         __update_states__: Y.Map,
+        sections_completed: Y.Map<Completeness>,
         decadal_survey: Y.XmlText,
         detailed_assessment: Y.XmlText,
         missions_phase_c: Y.XmlText,
@@ -34,9 +66,9 @@ export function docToSlateReport(doc: Y.Doc) {
         training_resources: Y.XmlText,
     };
 
-    const report: Report = {}
+    const report: CollabReportContent = {}
     Object.entries(schema).forEach(([key, type]) => {
-        const safeKey = key as (keyof Report);
+        const safeKey = key as (keyof CollabReportContent);
         const value = doc.get(key, type);
         if (type == Y.XmlText) {
             const val = yTextToSlateElement(value)
@@ -51,29 +83,72 @@ export function docToSlateReport(doc: Y.Doc) {
     return report;
 }
 
-export function slateReportToDoc(report: Report) {
-    const reportContent: Record<keyof Report, {
+export function slateReportToDoc(report: Report, doc: Y.Doc) {
+    type ReportContent =  Record<keyof CollabReportContent, {
         type: typeof Y.Map | typeof Y.XmlText,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         value: any,
-    }> = {
-        __update_states__: { type: Y.Map, value: {} },
-        decadal_survey: { type: Y.XmlText, value: report.decadal_survey?.children },
-        detailed_assessment: { type: Y.XmlText, value: report.detailed_assessment?.children },
-        missions_phase_c: { type: Y.XmlText, value: report.missions_phase_c?.children },
-        resources: { type: Y.XmlText, value: report.resources?.children },
-        synopsis: { type: Y.XmlText, value: report.synopsis?.children },
-        training_resources: { type: Y.XmlText, value: report.training_resources?.children },
+    }>
+
+
+    const {
+        document,
+        last_updated_at,
+        sections_completed,
+    } = report;
+
+    const reportContent: ReportContent = {
+        __update_states__: {
+            type: Y.Map,
+            value: {
+                no_of_updates: 0,
+                last_updated: new Date(last_updated_at).getTime(),
+            },
+        },
+        sections_completed: {
+            type: Y.Map,
+            value: {
+                synopsis: sections_completed.synopsis ?? 'incomplete',
+                assessment_response: sections_completed.assessment_response ?? 'incomplete',
+                summary_sensors_products: sections_completed.summary_sensors_products ?? 'incomplete',
+                training_resources: sections_completed.training_resources ?? 'incomplete',
+            }
+        },
+        decadal_survey: {
+            type: Y.XmlText,
+            value: document.decadal_survey?.children ?? [],
+        },
+        detailed_assessment: {
+            type: Y.XmlText,
+            value: document.detailed_assessment?.children ?? [],
+        },
+        missions_phase_c: {
+            type: Y.XmlText,
+            value: document.missions_phase_c?.children ?? [],
+        },
+        resources: {
+            type: Y.XmlText,
+            value: document.resources?.children ?? [],
+        },
+        synopsis: {
+            type: Y.XmlText,
+            value: document.synopsis?.children ?? [],
+        },
+        training_resources: {
+            type: Y.XmlText,
+            value: document.training_resources?.children ?? [],
+        },
     };
 
-    const doc = new Y.Doc();
-
+    // const doc = new Y.Doc();
     Object.entries(reportContent).forEach(([key, content]) => {
         const { type, value } = content;
         if (!value || value.length <= 0) {
             return;
         }
+
         const yElement = doc.get(key, type);
+
         if (yElement instanceof Y.XmlText) {
             const delta = slateNodesToInsertDelta(value);
             yElement.applyDelta(delta);
@@ -88,8 +163,9 @@ export function slateReportToDoc(report: Report) {
 }
 
 export function clearYjsReport(doc: Y.Doc) {
-    const schema: Record<keyof Report, typeof Y.Map | typeof Y.XmlText> = {
+    const schema: Record<keyof CollabReportContent, typeof Y.Map | typeof Y.XmlText> = {
         __update_states__: Y.Map,
+        sections_completed: Y.Map,
         decadal_survey: Y.XmlText,
         detailed_assessment: Y.XmlText,
         missions_phase_c: Y.XmlText,
@@ -135,6 +211,14 @@ export async function fetchReport(reportId: number, authToken: string) {
                 }),
             }
         );
+        if (!response.ok) {
+            if (response.status === 404) {
+                return new NotFoundError('Report not found');
+            } else if (response.status === 401 || response.status === 403) {
+                return new AuthError('Could not fetch report', response.status);
+            }
+            return Error('Could not fetch report');
+        }
     } catch (error) {
         // FIXME: We should check if we want to sanitize the message
         if (error instanceof Error) {
@@ -146,10 +230,7 @@ export async function fetchReport(reportId: number, authToken: string) {
     let responseContent;
     try {
         responseContent = await response.json() as {
-            versions: {
-                version: string;
-                document: Report;
-            }[];
+            versions: Report[];
         };
     } catch (error) {
         // FIXME: We should check if we want to sanitize the message

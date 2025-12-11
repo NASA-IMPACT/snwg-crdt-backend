@@ -1,190 +1,190 @@
 import * as Y from 'yjs'
-import { slateNodesToInsertDelta, yTextToSlateElement } from '@slate-yjs/core';
 
 import env from '../utils/env.ts';
 
-import {
-    type DocUpdateStatus,
-    type SlateElement,
-} from './doc.ts';
+import { type SlateElement } from './doc.ts';
 import { AuthError, NotFoundError } from './error.ts';
+import { clearDoc, initDoc, SDoc, GetTypeFromSchema, transformDoc, RecursiveNullable } from './schema.ts';
 
-type Completeness = "complete" | "incomplete";
-
-/**
- * Represents the section completeness of the report
- */
-export interface ReportSectionCompleteness {
-    synopsis?: Completeness;
-    assessment_response?: Completeness;
-    summary_sensors_products?: Completeness;
-    training_resources?: Completeness;
+interface Mission {
+    mission_id: string;
+    instrument_ids?: string[] | null;
 }
 
-/**
- * Represents the report content
- */
-interface PureReportContent {
-    __update_states__?: DocUpdateStatus | null,
-    sections_completed?: ReportSectionCompleteness | null,
+interface ReportContent {
     decadal_survey?: SlateElement | null,
     detailed_assessment?: SlateElement | null,
     missions_phase_c?: SlateElement | null,
     resources?: SlateElement | null,
     synopsis?: SlateElement | null,
     training_resources?: SlateElement | null,
+    summary_satellite_sensors?: SlateElement | null, // NOTE: Seems to be deprecated
+
+    // department?: string, // FIXME: How is this set
+
+    cmr_products?: string[] | null,
+    snwg_products?: number[] | null,
+    summary_proposed_activities?: number[] | null,
+    commercial_products?: number[] | null,
+
+    missions_selected?: Mission[] | null,
+    upcoming_missions_selected?: Mission[] | null,
 }
 
-/**
- * Represents the report
- */
-export interface Report {
+type Completeness = "complete" | "incomplete";
+
+interface ReportSectionCompleteness {
+    department?: Completeness | null; // NOTE: Seems to be deprecated
+    synopsis?: Completeness | null;
+    assessment_response?: Completeness | null;
+    summary_sensors_products?: Completeness | null;
+    training_resources?: Completeness | null;
+}
+
+interface Report {
     version: string;
-    document: PureReportContent;
+    document: ReportContent;
     last_updated_at: string;
     sections_completed: ReportSectionCompleteness;
 }
 
-/**
- * Represents the report content with additional metadata
- */
-export interface CollabReportContent extends PureReportContent {
-    __update_states__?: DocUpdateStatus | null,
-    sections_completed?: ReportSectionCompleteness | null,
-}
+export const schema = {
+    type: Y.Doc,
+    fields: {
+        __update_states__: {
+            type: Y.Map,
+            fields: {
+                last_updated: 'number',
+                no_of_updates: 'number',
+            }
+        },
+        sections_completed: {
+            type: Y.Map,
+            fields: {
+                department: 'string',
+                synopsis: 'string',
+                assessment_response: 'string',
+                summary_sensors_products: 'string',
+                training_resources: 'string',
+            },
+        },
+        decadal_survey: { type: Y.XmlText },
+        detailed_assessment: { type: Y.XmlText },
+        missions_phase_c: { type: Y.XmlText },
+        resources: { type: Y.XmlText },
+        synopsis: { type: Y.XmlText },
+        training_resources: { type: Y.XmlText },
+        summary_satellite_sensors: { type: Y.XmlText },
 
-export function docToSlateReport(doc: Y.Doc) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const schema: Record<keyof CollabReportContent, any> = {
-        __update_states__: Y.Map,
-        sections_completed: Y.Map<Completeness>,
-        decadal_survey: Y.XmlText,
-        detailed_assessment: Y.XmlText,
-        missions_phase_c: Y.XmlText,
-        resources: Y.XmlText,
-        synopsis: Y.XmlText,
-        training_resources: Y.XmlText,
-    };
+        cmr_products: {
+            type: Y.Array,
+            member: 'string',
+        },
+        snwg_products: {
+            type: Y.Array,
+            member: 'number',
+        },
+        summary_proposed_activities: {
+            type: Y.Array,
+            member: 'number',
+        },
+        commercial_products: {
+            type: Y.Array,
+            member: 'number',
+        },
 
-    const report: CollabReportContent = {}
-    Object.entries(schema).forEach(([key, type]) => {
-        const safeKey = key as (keyof CollabReportContent);
-        const value = doc.get(key, type);
-        if (type == Y.XmlText) {
-            const val = yTextToSlateElement(value)
-            report[safeKey] = val;
-        } else if (type == Y.Map) {
-            report[safeKey] = value.toJSON();
-        } else {
-            report[safeKey] = null;
-        }
-    });
+        missions_selected: {
+            type: Y.Array,
+            member: {
+                type: Y.Map,
+                fields: {
+                    mission_id: 'string',
+                    instrument_ids: {
+                        type: Y.Array,
+                        member: 'string',
+                    }
+                }
+            }
+        },
+        upcoming_missions_selected: {
+            type: Y.Array,
+            member: {
+                type: Y.Map,
+                fields: {
+                    mission_id: 'string',
+                    instrument_ids: {
+                        type: Y.Array,
+                        member: 'string',
+                    }
+                }
+            }
+        },
+    },
+} satisfies SDoc;
 
-    return report;
+export function transformReport(doc: Y.Doc) {
+    type CollabReport = RecursiveNullable<GetTypeFromSchema<typeof schema>>
+    return transformDoc(doc, schema) as CollabReport;
 }
 
 export function slateReportToDoc(report: Report, doc: Y.Doc) {
-    type ReportContent =  Record<keyof CollabReportContent, {
-        type: typeof Y.Map | typeof Y.XmlText,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        value: any,
-    }>
-
-
     const {
         document,
         last_updated_at,
         sections_completed,
     } = report;
 
-    const reportContent: ReportContent = {
+    type Data = GetTypeFromSchema<typeof schema>;
+    const data: Data = {
         __update_states__: {
-            type: Y.Map,
-            value: {
-                no_of_updates: 0,
-                last_updated: new Date(last_updated_at).getTime(),
-            },
+            no_of_updates: 0,
+            last_updated: new Date(last_updated_at).getTime(),
         },
         sections_completed: {
-            type: Y.Map,
-            value: {
-                synopsis: sections_completed.synopsis ?? 'incomplete',
-                assessment_response: sections_completed.assessment_response ?? 'incomplete',
-                summary_sensors_products: sections_completed.summary_sensors_products ?? 'incomplete',
-                training_resources: sections_completed.training_resources ?? 'incomplete',
-            }
+            department: sections_completed.department ?? 'incomplete',
+            synopsis: sections_completed.synopsis ?? 'incomplete',
+            assessment_response: sections_completed.assessment_response ?? 'incomplete',
+            summary_sensors_products: sections_completed.summary_sensors_products ?? 'incomplete',
+            training_resources: sections_completed.training_resources ?? 'incomplete',
         },
-        decadal_survey: {
-            type: Y.XmlText,
-            value: document.decadal_survey?.children ?? [],
-        },
-        detailed_assessment: {
-            type: Y.XmlText,
-            value: document.detailed_assessment?.children ?? [],
-        },
-        missions_phase_c: {
-            type: Y.XmlText,
-            value: document.missions_phase_c?.children ?? [],
-        },
-        resources: {
-            type: Y.XmlText,
-            value: document.resources?.children ?? [],
-        },
-        synopsis: {
-            type: Y.XmlText,
-            value: document.synopsis?.children ?? [],
-        },
-        training_resources: {
-            type: Y.XmlText,
-            value: document.training_resources?.children ?? [],
-        },
+        decadal_survey: document.decadal_survey?.children ?? [],
+        detailed_assessment: document.detailed_assessment?.children ?? [],
+        missions_phase_c: document.missions_phase_c?.children ?? [],
+        resources: document.resources?.children ?? [],
+        synopsis: document.synopsis?.children ?? [],
+        training_resources: document.training_resources?.children ?? [],
+        summary_satellite_sensors: document.training_resources?.children ?? [],
+
+        cmr_products: document.cmr_products ?? [],
+        snwg_products: document.snwg_products ?? [],
+        summary_proposed_activities: document.summary_proposed_activities ?? [],
+        commercial_products: document.commercial_products ?? [],
+
+        missions_selected: document.missions_selected?.map((mission) => ({
+            mission_id: mission.mission_id,
+            instrument_ids: mission.instrument_ids ?? [],
+        })) ?? [],
+        upcoming_missions_selected: document.upcoming_missions_selected?.map((mission) => ({
+            mission_id: mission.mission_id,
+            instrument_ids: mission.instrument_ids ?? [],
+        })) ?? [],
     };
 
-    // const doc = new Y.Doc();
-    Object.entries(reportContent).forEach(([key, content]) => {
-        const { type, value } = content;
-        if (!value || value.length <= 0) {
-            return;
-        }
-
-        const yElement = doc.get(key, type);
-
-        if (yElement instanceof Y.XmlText) {
-            const delta = slateNodesToInsertDelta(value);
-            yElement.applyDelta(delta);
-        } else {
-            for (const [key, val] of Object.entries(value)) {
-                yElement.set(key, val);
-            }
-        }
-    });
-
+    initDoc(doc, schema, data);
     return doc;
 }
 
-export function clearYjsReport(doc: Y.Doc) {
-    const schema: Record<keyof CollabReportContent, typeof Y.Map | typeof Y.XmlText> = {
-        __update_states__: Y.Map,
-        sections_completed: Y.Map,
-        decadal_survey: Y.XmlText,
-        detailed_assessment: Y.XmlText,
-        missions_phase_c: Y.XmlText,
-        resources: Y.XmlText,
-        synopsis: Y.XmlText,
-        training_resources: Y.XmlText,
-    };
-
-    Object.entries(schema).forEach(([key, type]) => {
-        const yElement = doc.get(key, type)
-        if (yElement instanceof Y.XmlText) {
-            yElement.delete(0, yElement.length);
-        } else {
-            yElement.clear();
-        }
-    });
+export function clearReport(doc: Y.Doc) {
+    clearDoc(doc, schema);
 }
 
-export function changeYjsReportUpdateStates(
+
+interface DocUpdateStatus {
+    last_updated?: number;
+    no_of_updates?: number;
+}
+
+export function changeReportUpdateStates(
     doc: Y.Doc,
     transformer: (value: DocUpdateStatus | null | undefined) => DocUpdateStatus,
 ) {

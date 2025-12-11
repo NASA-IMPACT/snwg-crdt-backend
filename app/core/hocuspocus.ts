@@ -6,7 +6,7 @@ import { S3 } from '@hocuspocus/extension-s3';
 import {
     fetchReport,
     slateReportToDoc,
-    changeYjsReportUpdateStates,
+    changeReportUpdateStates,
 } from '../utils/report.ts';
 import { verifyJwt } from '../utils/jwt.ts';
 import { validateDocName } from '../utils/doc.ts';
@@ -123,7 +123,7 @@ export const hocuspocusServer = new Hocuspocus({
         }
 
         document.transact(() => {
-            changeYjsReportUpdateStates(
+            changeReportUpdateStates(
                 document,
                 (oldValue) => ({
                     no_of_updates: (oldValue?.no_of_updates ?? 0) + 1,

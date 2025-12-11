@@ -2,26 +2,14 @@
 const DOC_PREFIX = 'document';
 const SCHEMA_VERSION = 'v1';
 
-/**
- * Unix timestamp in seconds
- * @isLong
- */
-type UnixTimestamp = number;
-
 // TODO: Use actual slate.Element
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type SlateElement = Record<string, any>;
-
 /**
- * Represents the status of the document regarding updates
+ * Represents the slate element
  */
-export interface DocUpdateStatus {
-    last_updated?: UnixTimestamp;
-    /**
-     * @isInt
-     */
-    no_of_updates?: number;
-}
+export interface SlateElement {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    children?: any[];
+};
 
 export function validateDocName(docName: string) {
     const [prefix, version, id] = docName.split('_');

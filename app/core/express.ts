@@ -4,18 +4,39 @@ import fs from 'fs';
 import yaml from 'yaml';
 import swaggerUi from 'swagger-ui-express';
 import morgan from 'morgan';
+import compression from 'compression';
+import cors from 'cors';
+import * as Helmet from 'helmet';
 
+// NOTE: could not import helmet normally!
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const helmet = Helmet.default as unknown as () => any;
 
 export const PORT = 8001;
 
 const expressApp = express();
-export const { app: expressServer } = expressWebsockets(expressApp);
+
+export const { app: expressWsApp } = expressWebsockets(expressApp);
 
 // Setup logger
-expressServer.use(morgan('dev'));
+expressWsApp.use(morgan('dev'));
+
+// Compress responses
+expressWsApp.use(compression());
+
+// Setup security headers
+expressWsApp.use(helmet());
+
+// Setup cors
+expressWsApp.use(cors({
+    // TODO: set this up
+    origin: '*',
+    // allowed headers: [],
+    // exposed headers: [],
+}))
 
 // Support swagger ui
-expressServer.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Response) => {
+expressWsApp.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Response) => {
     // NOTE: Using YAML because JSON giving error
     // https://gitlab.com/gitlab-org/gitlab/-/issues/379097
 

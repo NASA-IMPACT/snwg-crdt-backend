@@ -4,7 +4,7 @@ import { ValidateError } from "tsoa";
 import { AuthError } from './utils/error.ts';
 
 import { hocuspocusServer } from './core/hocuspocus.ts';
-import { expressServer, PORT } from './core/express.ts';
+import { expressWsApp, PORT } from './core/express.ts';
 
 import { RegisterRoutes } from "../generated/routes.ts";
 
@@ -32,15 +32,15 @@ import { RegisterRoutes } from "../generated/routes.ts";
 */
 
 // Register collaboration endpoint to upgrade to websocket
-expressServer.ws('/collaboration/', (websocket, request) => {
+expressWsApp.ws('/collaboration/', (websocket, request) => {
     hocuspocusServer.handleConnection(websocket, request)
 });
 
 // Register other routes from tsoa
-RegisterRoutes(expressServer);
+RegisterRoutes(expressWsApp);
 
 // Handle 404 errors
-expressServer.use(
+expressWsApp.use(
     (_req: express.Request, res: express.Response) => {
         res.status(404).send({
             message: "Resource not found",
@@ -49,7 +49,7 @@ expressServer.use(
 );
 
 // Handle other errors
-expressServer.use(
+expressWsApp.use(
     (err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
         if (err instanceof ValidateError) {
             console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
@@ -76,9 +76,16 @@ expressServer.use(
 );
 
 // Listen to requests
-expressServer.listen(
+const expressServer = expressWsApp.listen(
     PORT,
     () => {
         console.log(`Listening on http://127.0.0.1:${PORT}`)
     },
 );
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server')
+  expressServer.close(() => {
+    console.log('HTTP server closed')
+  })
+})

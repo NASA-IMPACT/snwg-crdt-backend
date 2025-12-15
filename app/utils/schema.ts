@@ -6,21 +6,21 @@ export interface SDoc {
     fields: Record<string, SMap | SArray | SXmlText>
 }
 
-export interface SMap {
+interface SMap {
     type: typeof Y.Map,
     fields: Record<string, SNode>
 }
 
-export interface SArray {
+interface SArray {
     type: typeof Y.Array,
     member: SNode
  }
 
-export interface SXmlText {
+interface SXmlText {
     type: typeof Y.XmlText,
 }
 
-export type SNode = SMap | SArray | SXmlText | 'string' | 'number';
+type SNode = SMap | SArray | SXmlText | 'string' | 'number';
 
 export type GetTypeFromSchema<T> = T extends SDoc
     ? { [key in keyof T['fields']]: GetTypeFromSchema<T['fields'][key]> }

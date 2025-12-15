@@ -3,7 +3,7 @@
         "target": "esnext",
         "module": "nodenext",
         "skipLibCheck": true,
-
+        "esModuleInterop": true,
 
         /* Bundler mode */
         "moduleResolution": "NodeNext",

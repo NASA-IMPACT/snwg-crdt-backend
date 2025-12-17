@@ -197,7 +197,7 @@ export function changeReportUpdateStates(
 }
 
 export async function fetchReport(reportId: number, authToken: string) {
-    const url = `${env.API_ENDPOINT}/v2/reports/${reportId}/versions/v1.0`;
+    const url = `${env.BACKEND_HOST}/v2/reports/${reportId}/versions/v1.0`;
     const authorization = `Bearer ${authToken}`;
 
     let response;

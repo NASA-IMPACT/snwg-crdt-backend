@@ -17,7 +17,7 @@ import { NotFoundError } from '../utils/error.ts';
 const s3Extension = new S3({
     bucket: env.S3_BUCKET,
     region: env.AWS_DEFAULT_REGION,
-    endpoint: env.S3_CUSTOM_ENDPOINT,
+    endpoint: env.AWS_RESOURCES_ENDPOINT,
     forcePathStyle: true,
 });
 
@@ -50,8 +50,8 @@ export const hocuspocusServer = new Hocuspocus({
 
         const tokenData = await verifyJwt(
             token,
-            env.COGNITO_USER_POOL_ID,
-            env.COGNITO_USER_CLIENT_ID,
+            env.WEB_COGNITO_USER_POOL_ID,
+            env.WEB_COGNITO_USER_POOL_CLIENT_ID,
             env.COGNITO_ISSUER,
         );
 

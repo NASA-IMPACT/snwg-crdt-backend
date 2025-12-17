@@ -24,8 +24,8 @@ export async function expressAuthentication(
 
     const tokenData = await verifyJwt(
         token,
-        env.COGNITO_USER_POOL_ID,
-        env.COGNITO_USER_CLIENT_ID,
+        env.WEB_COGNITO_USER_POOL_ID,
+        env.WEB_COGNITO_USER_POOL_CLIENT_ID,
         env.COGNITO_ISSUER);
 
     if (tokenData instanceof Error) {

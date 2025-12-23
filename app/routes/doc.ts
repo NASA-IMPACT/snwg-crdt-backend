@@ -6,10 +6,8 @@ import {
     Security,
     Tags,
     Path,
-    Request,
     ValidateError,
 } from "tsoa";
-import express from 'express';
 
 import { validateDocName } from '../utils/doc.ts';
 import { hocuspocusServer, getDoc } from '../core/hocuspocus.ts';
@@ -17,11 +15,9 @@ import {
     clearReport,
     transformReport,
     slateReportToDoc,
-    fetchReport,
+    type Report,
 } from '../utils/report.ts';
-import {
-    type SlateElement,
-} from '../utils/doc.ts';
+import { type SlateElement } from '../utils/doc.ts';
 
 interface DocResetResponse {
     docName: string;
@@ -76,7 +72,7 @@ export class DocController extends Controller {
     @Security("jwt", ["write"])
     public async resetDoc(
         @Path() name: string,
-        @Request() request: express.Request & { user: { token: string } },
+        body: Report,
     ): Promise<DocResetResponse> {
         const  docInfo = validateDocName(name);
         if (docInfo instanceof Error) {
@@ -87,14 +83,6 @@ export class DocController extends Controller {
             )
         }
 
-        const { id } = docInfo;
-
-        const reportV1 = await fetchReport(id, request.user.token);
-        if (reportV1 instanceof Error) {
-            // NOTE: Express error handler handles Error
-            throw reportV1;
-        }
-
         const connection = await hocuspocusServer.openDirectConnection(name);
         const connectionDoc = connection.document;
 
@@ -102,7 +90,7 @@ export class DocController extends Controller {
             connectionDoc.transact(() => {
                 clearReport(connectionDoc);
                 // Applying data from API
-                slateReportToDoc(reportV1, connectionDoc);
+                slateReportToDoc(body, connectionDoc);
             });
         }
         await connection.disconnect();

@@ -41,7 +41,7 @@ interface ReportSectionCompleteness {
     training_resources?: Completeness | null;
 }
 
-interface Report {
+export interface Report {
     version: string;
     document: ReportContent;
     last_updated_at: string;

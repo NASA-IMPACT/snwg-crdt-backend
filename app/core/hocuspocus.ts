@@ -53,6 +53,7 @@ export const hocuspocusServer = new Hocuspocus({
             env.WEB_COGNITO_USER_POOL_ID,
             env.WEB_COGNITO_USER_POOL_CLIENT_ID,
             env.COGNITO_ISSUER,
+            'id',
         );
 
         if (tokenData instanceof Error) {

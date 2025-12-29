@@ -42,7 +42,7 @@ interface ReportSectionCompleteness {
 }
 
 export interface Report {
-    version: string;
+    version: string | null | undefined;
     document: ReportContent;
     last_updated_at: string;
     sections_completed: ReportSectionCompleteness;

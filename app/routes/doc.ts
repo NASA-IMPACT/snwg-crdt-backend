@@ -3,6 +3,7 @@ import {
     Route,
     Get,
     Put,
+    Body,
     Security,
     Tags,
     Path,
@@ -69,10 +70,10 @@ export class DocController extends Controller {
      * Reset the document.
      */
     @Put("/{name}/reset")
-    @Security("jwt", ["write"])
+    @Security("backendAuthToken", ["document/write"])
     public async resetDoc(
         @Path() name: string,
-        body: Report,
+        @Body() body: Report,
     ): Promise<DocResetResponse> {
         const  docInfo = validateDocName(name);
         if (docInfo instanceof Error) {
@@ -104,7 +105,7 @@ export class DocController extends Controller {
      * Returns the content of the document as slate's data model.
      */
     @Get("/{name}")
-    @Security("jwt", ["read"])
+    @Security("userAuthJwt", ["document/read"])
     public async getDoc(
         @Path() name: string,
     ): Promise<DocGetResponse> {

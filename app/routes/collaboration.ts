@@ -31,7 +31,7 @@ export class CollaborationController extends Controller {
      * including the number of open documents and active connections.
      */
     @Get("/status/")
-    @Security("jwt", ["read"])
+    @Security("userAuthJwt", ["status/read"])
     @Example<CollaborationStatus>({
         openDocs: 5,
         openConnections: 12

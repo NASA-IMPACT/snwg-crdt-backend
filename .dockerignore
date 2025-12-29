@@ -1,11 +1,12 @@
 *.swp
 *.log
 
+.env
+.env*
+
 build/
-generated/
 dist/
 node_modules/
 .pnpm-store/
 
-.env
-.env*
+generated/

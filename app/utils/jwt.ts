@@ -5,6 +5,7 @@ export async function verifyJwt(
     userPoolId: string,
     clientId: string,
     issuer: string | undefined,
+    tokenUse: 'id' | 'access',
 ) {
     const verifier = CognitoJwtVerifier.create({
         userPoolId: (userPoolId as string),
@@ -16,7 +17,7 @@ export async function verifyJwt(
             token,
             {
                 clientId: (clientId as string),
-                tokenUse: 'id',
+                tokenUse,
             },
         );
         return payload;

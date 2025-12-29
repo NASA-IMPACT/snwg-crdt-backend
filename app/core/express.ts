@@ -18,6 +18,9 @@ const expressApp = express();
 
 export const { app: expressWsApp } = expressWebsockets(expressApp);
 
+// Setup json parser
+expressWsApp.use(express.json());
+
 // Setup logger
 expressWsApp.use(morgan('dev'));
 

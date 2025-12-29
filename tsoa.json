@@ -1,6 +1,5 @@
 {
   "entryFile": "app/main.ts",
-    "noImplicitAdditionalProperties": "throw-on-extras",
     "controllerPathGlobs": ["./app/routes/**/*.ts"],
     "spec": {
         "outputDirectory": "generated",
@@ -9,10 +8,15 @@
         "description": "API for SNWG CRDT Backend",
         "yaml": true,
         "securityDefinitions": {
-            "jwt": {
+            "userAuthJwt": {
                 "type": "http",
                 "scheme": "bearer",
                 "bearerFormat": "JWT"
+            },
+            "backendAuthToken": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "custom"
             }
         }
     },

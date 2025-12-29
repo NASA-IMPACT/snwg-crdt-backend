@@ -6,6 +6,8 @@ const env = cleanEnv(process.env, {
     WEB_COGNITO_USER_POOL_ID: str(),
     WEB_COGNITO_USER_POOL_CLIENT_ID: str(),
 
+    SERVICE_TOKEN: str(),
+
     AWS_ACCESS_KEY_ID: str(),
     AWS_SECRET_ACCESS_KEY: str(),
     AWS_DEFAULT_REGION: str(),

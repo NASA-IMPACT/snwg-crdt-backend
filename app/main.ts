@@ -8,29 +8,6 @@ import { expressWsApp, PORT } from './core/express.ts';
 
 import { RegisterRoutes } from "../generated/routes.ts";
 
-/* TODO:
-- HIGH
-    - Check if document exists on the backend and user has write access
-- MEDIUM
-    - Check updated authentication token
-        - beforeHandleMessage and onTokenSync
-    - Do not throw errors instead use Union
-    - Add JSDoc linting in eslint
-        - https://www.npmjs.com/package/eslint-plugin-jsdoc
-- LOW
-    - Add background check to see if document schema version has changed between client and server
-    - Migrate documents when versions change?
-    - Configure express extentions
-        - compression
-        - cors
-        - timeout
-        - helmet
-    - Add health check
-        - https://article.arunangshudas.com/6-common-mistakes-in-node-js-health-check-implementations-852c62365065
-    - Check stack trace
-    - Setup error monitoring
-*/
-
 // Register collaboration endpoint to upgrade to websocket
 expressWsApp.ws('/collaboration/', (websocket, request) => {
     hocuspocusServer.handleConnection(websocket, request)
@@ -83,6 +60,10 @@ const expressServer = expressWsApp.listen(
     },
 );
 
+// Setup timeout to 1 minute
+expressServer.setTimeout( 1 * 60 * 1000)
+
+// Handle sigterm
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server')
   expressServer.close(() => {

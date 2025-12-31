@@ -8,6 +8,8 @@ import compression from 'compression';
 import cors from 'cors';
 import * as Helmet from 'helmet';
 
+import env from '../utils/env.ts';
+
 // NOTE: could not import helmet normally!
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const helmet = Helmet.default as unknown as () => any;
@@ -32,10 +34,7 @@ expressWsApp.use(helmet());
 
 // Setup cors
 expressWsApp.use(cors({
-    // TODO: set this up
-    origin: '*',
-    // allowed headers: [],
-    // exposed headers: [],
+    origin: env.FRONTEND_HOST,
 }))
 
 // Support swagger ui

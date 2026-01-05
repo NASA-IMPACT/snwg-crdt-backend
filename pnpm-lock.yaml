@@ -9,7 +9,7 @@ patchedDependencies:
     hash: xxve32gz7rr643umuvfd2qxwwa
     path: patches/@hocuspocus__extension-s3@3.4.0.patch
   aws-jwt-verify@5.1.1:
-    hash: mao7pcobjo4vzluhs7bve4feci
+    hash: ekt5t6jm6yd3zirc4u2sqwfbti
     path: patches/aws-jwt-verify@5.1.1.patch
 
 dependencies:
@@ -30,7 +30,7 @@ dependencies:
     version: 6.6.0
   aws-jwt-verify:
     specifier: ^5.1.1
-    version: 5.1.1(patch_hash=mao7pcobjo4vzluhs7bve4feci)
+    version: 5.1.1(patch_hash=ekt5t6jm6yd3zirc4u2sqwfbti)
   compression:
     specifier: ^1.8.1
     version: 1.8.1
@@ -2117,7 +2117,7 @@ packages:
       tslib: 2.8.1
     dev: false
 
-  /aws-jwt-verify@5.1.1(patch_hash=mao7pcobjo4vzluhs7bve4feci):
+  /aws-jwt-verify@5.1.1(patch_hash=ekt5t6jm6yd3zirc4u2sqwfbti):
     resolution: {integrity: sha512-j6whGdGJmQ27agk4ijY8RPv6itb8JLb7SCJ86fEnneTcSBrpxuwL8kLq6y5WVH95aIknyAloEqAsaOLS1J8ITQ==}
     engines: {node: '>=18.0.0'}
     dev: false

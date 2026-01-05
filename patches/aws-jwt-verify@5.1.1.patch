@@ -28,7 +28,7 @@ index c9b17c8f0ae7a91cf932f105b8fcca067765530c..d6b9ef00d73ff673980a58ea81a5ab6a
          jwksUri: string;
      };
 diff --git a/dist/esm/cognito-verifier.js b/dist/esm/cognito-verifier.js
-index c858b15171f0dda5076d59341a18e53c8908ae59..168b2828343b63c4ed7a2e9bf2ee3df18c4f1a28 100644
+index c858b15171f0dda5076d59341a18e53c8908ae59..ba89d5c6e6656e76c230d0d0e481f6a13d60f54f 100644
 --- a/dist/esm/cognito-verifier.js
 +++ b/dist/esm/cognito-verifier.js
 @@ -48,13 +48,21 @@ export class CognitoJwtVerifier extends JwtVerifierBase {
@@ -55,7 +55,7 @@ index c858b15171f0dda5076d59341a18e53c8908ae59..168b2828343b63c4ed7a2e9bf2ee3df1
              };
          super(issuerConfig, jwksCache);
      }
-@@ -64,13 +72,20 @@ export class CognitoJwtVerifier extends JwtVerifierBase {
+@@ -64,13 +72,16 @@ export class CognitoJwtVerifier extends JwtVerifierBase {
       * @param userPoolId The User Pool ID
       * @returns The issuer and JWKS URI for the User Pool
       */
@@ -70,10 +70,6 @@ index c858b15171f0dda5076d59341a18e53c8908ae59..168b2828343b63c4ed7a2e9bf2ee3df1
 +        const issuer = !overrideIssuer
 +            ? `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`
 +            : `${overrideIssuer}/${userPoolId}`
-+
-+        if (!overrideIssuer) {
-+            throw Error();
-+        }
 +
          return {
              issuer,

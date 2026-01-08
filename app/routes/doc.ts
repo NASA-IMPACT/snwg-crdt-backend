@@ -84,17 +84,22 @@ export class DocController extends Controller {
             )
         }
 
-        const connection = await hocuspocusServer.openDirectConnection(name);
-        const connectionDoc = connection.document;
+        // NOTE: We can ignore if it does not exist
+        try {
+            const connection = await hocuspocusServer.openDirectConnection(name);
+            const connectionDoc = connection.document;
 
-        if (connectionDoc) {
-            connectionDoc.transact(() => {
-                clearReport(connectionDoc);
-                // Applying data from API
-                slateReportToDoc(body, connectionDoc);
-            });
+            if (connectionDoc) {
+                connectionDoc.transact(() => {
+                    clearReport(connectionDoc);
+                    // Applying data from API
+                    slateReportToDoc(body, connectionDoc);
+                });
+            }
+            await connection.disconnect();
+        } catch (ex) {
+            console.error('Could not open/close direct connection to document', ex);
         }
-        await connection.disconnect();
 
         return {
             docName: name,

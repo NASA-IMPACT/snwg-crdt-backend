@@ -106,8 +106,7 @@ export const hocuspocusServer = new Hocuspocus({
             throw reportV1;
         }
 
-        const reportDoc = new Y.Doc();
-        slateReportToDoc(reportV1, reportDoc);
+        slateReportToDoc(reportV1, data.document);
         console.debug(`Loaded document "${data.documentName}" from API`);
         return data.document;
     },

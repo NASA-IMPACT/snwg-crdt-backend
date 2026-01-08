@@ -64,9 +64,9 @@ export const hocuspocusServer = new Hocuspocus({
         // TODO: Update permissions from user group and pass permission function
         const id = tokenData['cognito:username'];
         const groups = tokenData['cognito:groups'];
-        if (!groups || !(groups.includes('curator') || groups.includes('reviewer'))) {
+        if (!groups || groups.length <= 0) {
             // NOTE: Throwing exception so that authenitcation fails
-            throw Error("Only curators/reviewers can edit documents");
+            throw Error("User should be in a group to edit documents");
         }
 
         return {

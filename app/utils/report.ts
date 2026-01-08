@@ -147,13 +147,27 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
             summary_sensors_products: sections_completed.summary_sensors_products ?? 'incomplete',
             training_resources: sections_completed.training_resources ?? 'incomplete',
         },
-        decadal_survey: document.decadal_survey?.children ?? [],
-        detailed_assessment: document.detailed_assessment?.children ?? [],
-        missions_phase_c: document.missions_phase_c?.children ?? [],
-        resources: document.resources?.children ?? [],
-        synopsis: document.synopsis?.children ?? [],
-        training_resources: document.training_resources?.children ?? [],
-        summary_satellite_sensors: document.training_resources?.children ?? [],
+        decadal_survey: document.decadal_survey?.children ?? [
+            { type: 'p', children: [{ text: '' }] },
+        ],
+        detailed_assessment: document.detailed_assessment?.children ?? [
+            { type: 'p', children: [{ text: '' }] },
+        ],
+        missions_phase_c: document.missions_phase_c?.children ?? [
+            { type: 'p', children: [{ text: '' }] },
+        ],
+        resources: document.resources?.children ?? [
+            { type: 'p', children: [{ text: '' }] },
+        ],
+        synopsis: document.synopsis?.children ?? [
+            { type: 'p', children: [{ text: '' }] },
+        ],
+        training_resources: document.training_resources?.children ?? [
+            { type: 'p', children: [{ text: '' }] },
+        ],
+        summary_satellite_sensors: document.training_resources?.children ?? [
+            { type: 'p', children: [{ text: '' }] },
+        ],
 
         cmr_products: document.cmr_products ?? [],
         snwg_products: document.snwg_products ?? [],
@@ -163,11 +177,21 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
         missions_selected: document.missions_selected?.map((mission) => ({
             mission_id: mission.mission_id,
             instrument_ids: mission.instrument_ids ?? [],
-        })) ?? [],
+        })) ?? [
+            {
+                mission_id: '-1',
+                instrument_ids: [],
+            },
+        ],
         upcoming_missions_selected: document.upcoming_missions_selected?.map((mission) => ({
             mission_id: mission.mission_id,
             instrument_ids: mission.instrument_ids ?? [],
-        })) ?? [],
+        })) ?? [
+            {
+                mission_id: '-1',
+                instrument_ids: [],
+            },
+        ],
     };
 
     initDoc(doc, schema, data);

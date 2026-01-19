@@ -1,0 +1,6 @@
+{
+    "watch": ["app/routes"],
+    "ext": "ts",
+    "exec": "pnpm tsoa:generate"
+}
+

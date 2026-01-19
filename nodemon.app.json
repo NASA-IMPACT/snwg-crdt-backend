@@ -1,0 +1,6 @@
+{
+    "ignore": ["app/routes"],
+    "watch": ["app", "generated"],
+    "ext": "ts",
+    "exec": "pnpm start"
+}

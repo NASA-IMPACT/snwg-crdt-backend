@@ -34,7 +34,10 @@ expressWsApp.use(helmet());
 
 // Setup cors
 expressWsApp.use(cors({
-    origin: env.FRONTEND_HOST,
+    origin: [
+        env.FRONTEND_HOST,
+        ...env.CORS_ALLOWED_ORIGINS,
+    ],
 }))
 
 // Support swagger ui

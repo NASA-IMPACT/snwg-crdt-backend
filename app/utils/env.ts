@@ -1,4 +1,15 @@
-import { cleanEnv, str, url } from "envalid";
+import { cleanEnv, str, url, makeValidator } from "envalid";
+
+const urlList = makeValidator<string[]>((input: string) => {
+  return input.split(",").map((value) => {
+    const url = value.trim();
+    if (url === '') {
+        return '';
+    }
+    new URL(url);
+    return url;
+  }).filter((item) => item != '')
+});
 
 const env = cleanEnv(process.env, {
     COGNITO_ISSUER: url({ default: undefined }),
@@ -15,6 +26,7 @@ const env = cleanEnv(process.env, {
 
     BACKEND_HOST: url(),
     FRONTEND_HOST: url(),
+    CORS_ALLOWED_ORIGINS: urlList({ default: [] }),
 });
 
 export default env;

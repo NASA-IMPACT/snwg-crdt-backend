@@ -8,27 +8,27 @@ import { clearDoc, initDoc, SDoc, GetTypeFromSchema, transformDoc, RecursiveNull
 
 interface Mission {
     mission_id: string;
-    instrument_ids?: string[] | null;
+    instrument_ids?: string[];
 }
 
 interface ReportContent {
-    decadal_survey?: SlateElement | null,
-    detailed_assessment?: SlateElement | null,
-    missions_phase_c?: SlateElement | null,
-    resources?: SlateElement | null,
-    synopsis?: SlateElement | null,
-    training_resources?: SlateElement | null,
-    summary_satellite_sensors?: SlateElement | null, // NOTE: Seems to be deprecated
+    decadal_survey?: SlateElement;
+    detailed_assessment?: SlateElement;
+    missions_phase_c?: SlateElement;
+    resources?: SlateElement;
+    synopsis?: SlateElement;
+    training_resources?: SlateElement;
+    summary_satellite_sensors?: SlateElement; // NOTE: Seems to be deprecated
 
-    // department?: string, // FIXME: How is this set
+    // department?: string; // FIXME: How is this set
 
-    cmr_products?: string[] | null,
-    snwg_products?: number[] | null,
-    summary_proposed_activities?: number[] | null,
-    commercial_products?: number[] | null,
+    cmr_products?: string[];
+    snwg_products?: number[];
+    summary_proposed_activities?: number[];
+    commercial_products?: number[];
 
-    missions_selected?: Mission[] | null,
-    upcoming_missions_selected?: Mission[] | null,
+    missions_selected?: Mission[];
+    upcoming_missions_selected?: Mission[];
 }
 
 type Completeness = "complete" | "incomplete";
@@ -42,8 +42,8 @@ interface ReportSectionCompleteness {
 }
 
 export interface Report {
-    version: string | null | undefined;
-    document: ReportContent;
+    version?: string;
+    document: ReportDocument;
     last_updated_at: string;
     sections_completed: ReportSectionCompleteness;
 }
@@ -165,7 +165,7 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
         training_resources: document.training_resources?.children ?? [
             { type: 'p', children: [{ text: '' }] },
         ],
-        summary_satellite_sensors: document.training_resources?.children ?? [
+        summary_satellite_sensors: document.summary_satellite_sensors?.children ?? [
             { type: 'p', children: [{ text: '' }] },
         ],
 

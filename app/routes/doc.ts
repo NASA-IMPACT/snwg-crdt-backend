@@ -30,6 +30,7 @@ interface DocResetResponse {
  */
 type UnixTimestamp = number;
 
+// FIXME: Do we need null here?
 interface DocGetResponse {
     __update_states__?: {
         last_updated?: UnixTimestamp | null;
@@ -120,7 +121,7 @@ export class DocController extends Controller {
             throw new ValidateError(
                 { name: { message: docInfo.message, value: name  } },
                 'Validation Failed',
-            )
+            );
         }
 
         const doc = await getDoc(name);

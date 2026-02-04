@@ -99,7 +99,11 @@ export const hocuspocusServer = new Hocuspocus({
         // NOTE: If document not in S3, get from server
         const { token } = data.context.user;
         const { id } = data.context.doc;
-        const reportV1 = await fetchReport(id, token);
+        const reportV1 = await fetchReport(
+            env.BACKEND_HOST,
+            id,
+            token,
+        );
 
         if (reportV1 instanceof Error) {
             // NOTE: Throwing exception so that empty document is not created

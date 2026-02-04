@@ -1,58 +1,25 @@
-import express from 'express';
-import { ValidateError } from "tsoa";
-
-import { AuthError } from './utils/error.ts';
-
 import { hocuspocusServer } from './core/hocuspocus.ts';
-import { expressWsApp, PORT } from './core/express.ts';
+import { initWsApp } from './core/express.ts';
 
-import { RegisterRoutes } from "../generated/routes.ts";
+import env from './utils/env.ts';
 
-// Register collaboration endpoint to upgrade to websocket
-expressWsApp.ws('/collaboration/', (websocket, request) => {
-    hocuspocusServer.handleConnection(websocket, request)
-});
-
-// Register other routes from tsoa
-RegisterRoutes(expressWsApp);
-
-// Handle 404 errors
-expressWsApp.use(
-    (_req: express.Request, res: express.Response) => {
-        res.status(404).send({
-            message: "Resource not found",
+const expressWsApp = initWsApp(
+    {
+        allowedOrigins: [
+            env.FRONTEND_HOST,
+            ...env.CORS_ALLOWED_ORIGINS,
+        ],
+    },
+    (app) => {
+        // Register collaboration endpoint to upgrade to websocket
+        app.ws('/collaboration/', (websocket, request) => {
+            hocuspocusServer.handleConnection(websocket, request)
         });
     },
 );
 
-// Handle other errors
-expressWsApp.use(
-    (err: unknown, req: express.Request, res: express.Response, next: express.NextFunction) => {
-        if (err instanceof ValidateError) {
-            console.warn(`Caught Validation Error for ${req.path}:`, err.fields);
-            return res.status(422).json({
-                message: "Validation failed",
-                details: err?.fields,
-            });
-        }
-        if (err instanceof AuthError) {
-            return res.status(401).send({
-                message: "Unauthorized",
-                details: err.message,
-            });
-        }
-        if (err instanceof Error) {
-            return res.status(500).json({
-                message: "Internal server error",
-                details: err.message,
-            });
-        }
-        console.error('Uncaught error', err);
-        next();
-    },
-);
-
 // Listen to requests
+const PORT = 8001;
 const expressServer = expressWsApp.listen(
     PORT,
     () => {

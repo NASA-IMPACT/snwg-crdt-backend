@@ -1,7 +1,5 @@
 import * as Y from 'yjs'
 
-import env from '../utils/env.ts';
-
 import { type SlateElement } from './doc.ts';
 import { AuthError, NotFoundError } from './error.ts';
 import { clearDoc, initDoc, SDoc, GetTypeFromSchema, transformDoc, RecursiveNullable } from './schema.ts';
@@ -220,8 +218,8 @@ export function changeReportUpdateStates(
     });
 }
 
-export async function fetchReport(reportId: number, authToken: string) {
-    const url = `${env.BACKEND_HOST}/v2/reports/${reportId}/versions/v1.0`;
+export async function fetchReport(backendUrl: string, reportId: number, authToken: string) {
+    const url = `${backendUrl}/v2/reports/${reportId}/versions/v1.0`;
     const authorization = `Bearer ${authToken}`;
 
     let response;

@@ -6,10 +6,12 @@ export async function verifyJwt(
     clientId: string,
     issuer: string | undefined,
     tokenUse: 'id' | 'access',
+    graceSeconds = 0,
 ) {
     const verifier = CognitoJwtVerifier.create({
         userPoolId: (userPoolId as string),
         overrideIssuer: issuer,
+        graceSeconds,
     });
 
     try {
@@ -28,4 +30,3 @@ export async function verifyJwt(
         return Error('Failed to verify jwt')
     }
 }
-

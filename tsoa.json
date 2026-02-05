@@ -1,6 +1,6 @@
 {
   "entryFile": "app/main.ts",
-    "controllerPathGlobs": ["./app/routes/**/*.ts"],
+    "controllerPathGlobs": ["./app/routes/**/!(*.test)*.ts"],
     "spec": {
         "outputDirectory": "generated",
         "specVersion": 3,

@@ -7,6 +7,7 @@ generated/
 dist/
 node_modules/
 .pnpm-store/
+coverage/
 
 .env
 .env*

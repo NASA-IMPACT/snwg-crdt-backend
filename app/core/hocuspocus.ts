@@ -14,7 +14,7 @@ import env from '../utils/env.ts';
 import { NotFoundError } from '../utils/error.ts';
 
 // Configure hocuspocus extentions
-const s3Extension = new S3({
+export const s3Extension = new S3({
     bucket: env.S3_BUCKET,
     region: env.AWS_DEFAULT_REGION,
     endpoint: env.AWS_RESOURCES_ENDPOINT,

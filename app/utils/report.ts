@@ -9,7 +9,7 @@ interface Mission {
     instrument_ids?: string[];
 }
 
-interface ReportContent {
+export interface ReportDocument {
     decadal_survey?: SlateElement;
     detailed_assessment?: SlateElement;
     missions_phase_c?: SlateElement;

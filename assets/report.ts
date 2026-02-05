@@ -1,6 +1,6 @@
 import type { Report, ReportDocument } from '../app/utils/report.ts';
 
-export const reportDocument: ReportDocument = {
+const reportDocument: ReportDocument = {
     // FIXME: handle this
     // "department": "Environmental Protection Agency/Office of Research and Development",
     // "department_abvr": "EPA/ORD",

@@ -4,7 +4,7 @@
     "description": "SNWG CRDT backend",
     "type": "module",
     "scripts": {
-        "lint:js": "eslint app/main.ts",
+        "lint:js": "eslint ./app ./assets",
         "lint:unused": "knip --tags=-knipignore --no-gitignore",
         "lint:ts": "tsc",
         "test": "vitest run",
@@ -39,6 +39,7 @@
     "packageManager": "pnpm@8.15.9+sha512.499434c9d8fdd1a2794ebf4552b3b25c0a633abcee5bb15e7b5de90f32f47b513aca98cd5cfd001c31f0db454bc3804edccd578501e4ca293a6816166bbd9f81",
     "devDependencies": {
         "@eslint/js": "^9.24.0",
+        "@stylistic/eslint-plugin": "^5.7.1",
         "@types/compression": "^1.8.1",
         "@types/cors": "^2.8.19",
         "@types/express": "^5.0.5",

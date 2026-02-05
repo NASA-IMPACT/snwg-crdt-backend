@@ -1,4 +1,4 @@
-import * as Y from 'yjs'
+import * as Y from 'yjs';
 
 import { type SlateElement } from './doc.ts';
 import { AuthError, NotFoundError } from './error.ts';
@@ -29,7 +29,7 @@ export interface ReportDocument {
     upcoming_missions_selected?: Mission[];
 }
 
-type Completeness = "complete" | "incomplete";
+type Completeness = 'complete' | 'incomplete';
 
 interface ReportSectionCompleteness {
     department?: Completeness | null; // NOTE: Seems to be deprecated
@@ -54,7 +54,7 @@ export const schema = {
             fields: {
                 last_updated: 'number',
                 no_of_updates: 'number',
-            }
+            },
         },
         sections_completed: {
             type: Y.Map,
@@ -100,9 +100,9 @@ export const schema = {
                     instrument_ids: {
                         type: Y.Array,
                         member: 'string',
-                    }
-                }
-            }
+                    },
+                },
+            },
         },
         upcoming_missions_selected: {
             type: Y.Array,
@@ -113,15 +113,15 @@ export const schema = {
                     instrument_ids: {
                         type: Y.Array,
                         member: 'string',
-                    }
-                }
-            }
+                    },
+                },
+            },
         },
     },
 } satisfies SDoc;
 
 export function transformReport(doc: Y.Doc) {
-    type CollabReport = RecursiveNullable<GetTypeFromSchema<typeof schema>>
+    type CollabReport = RecursiveNullable<GetTypeFromSchema<typeof schema>>;
     return transformDoc(doc, schema) as CollabReport;
 }
 
@@ -172,7 +172,7 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
         summary_proposed_activities: document.summary_proposed_activities ?? [],
         commercial_products: document.commercial_products ?? [],
 
-        missions_selected: document.missions_selected?.map((mission) => ({
+        missions_selected: document.missions_selected?.map(mission => ({
             mission_id: mission.mission_id,
             instrument_ids: mission.instrument_ids ?? [],
         })) ?? [
@@ -181,7 +181,7 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
                 instrument_ids: [],
             },
         ],
-        upcoming_missions_selected: document.upcoming_missions_selected?.map((mission) => ({
+        upcoming_missions_selected: document.upcoming_missions_selected?.map(mission => ({
             mission_id: mission.mission_id,
             instrument_ids: mission.instrument_ids ?? [],
         })) ?? [
@@ -199,7 +199,6 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
 export function clearReport(doc: Y.Doc) {
     clearDoc(doc, schema);
 }
-
 
 interface DocUpdateStatus {
     last_updated?: number;
@@ -228,20 +227,22 @@ export async function fetchReport(backendUrl: string, reportId: number, authToke
             url,
             {
                 headers: new Headers({
-                    'Authorization': authorization,
-                    'Accept': 'application/json',
+                    Authorization: authorization,
+                    Accept: 'application/json',
                 }),
-            }
+            },
         );
         if (!response.ok) {
             if (response.status === 404) {
                 return new NotFoundError('Report not found');
-            } else if (response.status === 401 || response.status === 403) {
+            }
+            else if (response.status === 401 || response.status === 403) {
                 return new AuthError('Could not fetch report', response.status);
             }
             return Error('Could not fetch report');
         }
-    } catch (error) {
+    }
+    catch (error) {
         // FIXME: We should check if we want to sanitize the message
         if (error instanceof Error) {
             return error;
@@ -254,7 +255,8 @@ export async function fetchReport(backendUrl: string, reportId: number, authToke
         responseContent = await response.json() as {
             versions: Report[];
         };
-    } catch (error) {
+    }
+    catch (error) {
         // FIXME: We should check if we want to sanitize the message
         if (error instanceof Error) {
             return error;
@@ -262,7 +264,7 @@ export async function fetchReport(backendUrl: string, reportId: number, authToke
         return Error('Could not parse report as JSON');
     }
 
-    const reportV1 = responseContent.versions.find((item) => item.version === 'v1.0');
+    const reportV1 = responseContent.versions.find(item => item.version === 'v1.0');
     if (!reportV1) {
         return Error('Report with version v1.0 not found');
     }

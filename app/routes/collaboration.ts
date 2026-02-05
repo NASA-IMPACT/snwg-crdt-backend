@@ -5,7 +5,7 @@ import {
     Security,
     Tags,
     Example,
-} from "tsoa";
+} from 'tsoa';
 
 import { hocuspocusServer } from '../core/hocuspocus.ts';
 
@@ -23,18 +23,18 @@ interface CollaborationStatus {
     openConnections: number;
 }
 
-@Tags("Collaboration")
-@Route("/collaboration/")
+@Tags('Collaboration')
+@Route('/collaboration/')
 export class CollaborationController extends Controller {
-     /**
+    /**
      * Returns the current status of the collaboration server,
      * including the number of open documents and active connections.
      */
-    @Get("/status/")
-    @Security("userAuthJwt", ["status/read"])
+    @Get('/status/')
+    @Security('userAuthJwt', ['status/read'])
     @Example<CollaborationStatus>({
         openDocs: 5,
-        openConnections: 12
+        openConnections: 12,
     })
     public async getCollaborationStatus(): Promise<CollaborationStatus> {
         return {

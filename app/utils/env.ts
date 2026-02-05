@@ -1,4 +1,4 @@
-import { cleanEnv, str, url, makeValidator } from "envalid";
+import { cleanEnv, str, url, makeValidator } from 'envalid';
 
 import { validateCommaSeparatedUrls } from './common.ts';
 

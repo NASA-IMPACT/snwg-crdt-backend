@@ -11,13 +11,13 @@ export async function expressAuthentication(
 ) {
     if (securityName !== 'userAuthJwt' && securityName !== 'backendAuthToken') {
         // NOTE: Express error handler handles AuthError
-        throw new AuthError('Security name should either be "userAuthJwt" or "backendAuthToken"', 401)
+        throw new AuthError('Security name should either be "userAuthJwt" or "backendAuthToken"', 401);
     }
 
     const authHeader = request.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         // NOTE: Express error handler handles AuthError
-        throw new AuthError('Missing or invalid Authorization header', 401)
+        throw new AuthError('Missing or invalid Authorization header', 401);
     }
 
     const token = authHeader.replace(/^Bearer /, '');
@@ -32,7 +32,7 @@ export async function expressAuthentication(
 
         if (tokenData instanceof Error) {
             // NOTE: Express error handler handles AuthError
-            throw new AuthError(tokenData.message, 401)
+            throw new AuthError(tokenData.message, 401);
         }
 
         // TODO: match scope with groups
@@ -44,10 +44,11 @@ export async function expressAuthentication(
             scope: undefined,
             token,
         };
-    } else {
+    }
+    else {
         if (token !== env.SERVICE_TOKEN) {
             // NOTE: Express error handler handles AuthError
-            throw new AuthError('Service token is not correct', 401)
+            throw new AuthError('Service token is not correct', 401);
         }
         // TODO: match scope with token scope
         return {

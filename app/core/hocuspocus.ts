@@ -1,5 +1,5 @@
-import * as Y from 'yjs'
-import { Connection, Hocuspocus, type Extension } from '@hocuspocus/server'
+import * as Y from 'yjs';
+import { Connection, Hocuspocus, type Extension } from '@hocuspocus/server';
 import { Logger } from '@hocuspocus/extension-logger';
 import { S3 } from '@hocuspocus/extension-s3';
 
@@ -58,7 +58,7 @@ export const hocuspocusServer = new Hocuspocus({
 
         if (tokenData instanceof Error) {
             // NOTE: Throwing exception so that authenitcation fails
-            throw Error("Token must be valid!");
+            throw Error('Token must be valid!');
         }
 
         // TODO: Update permissions from user group and pass permission function
@@ -66,7 +66,7 @@ export const hocuspocusServer = new Hocuspocus({
         const groups = tokenData['cognito:groups'];
         if (!groups || groups.length <= 0) {
             // NOTE: Throwing exception so that authenitcation fails
-            throw Error("User should be in a group to edit documents");
+            throw Error('User should be in a group to edit documents');
         }
 
         return {
@@ -129,25 +129,25 @@ export const hocuspocusServer = new Hocuspocus({
         document.transact(() => {
             changeReportUpdateStates(
                 document,
-                (oldValue) => ({
+                oldValue => ({
                     no_of_updates: (oldValue?.no_of_updates ?? 0) + 1,
                     last_updated: new Date().getTime(),
                 }),
             );
         });
     },
-})
+});
 
 // Get a document from hocuspocus or s3
 export async function getDoc(name: string) {
-    const doc = hocuspocusServer.documents.get(name)
+    const doc = hocuspocusServer.documents.get(name);
     if (doc) {
         return doc;
     }
 
     const s3Doc = new Y.Doc();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fetched = await s3Extension.configuration.fetch({ documentName: name, } as any);
+    const fetched = await s3Extension.configuration.fetch({ documentName: name } as any);
     if (!fetched) {
         return new NotFoundError('Document not found');
     }

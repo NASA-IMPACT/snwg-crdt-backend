@@ -2,22 +2,22 @@ import { slateNodesToInsertDelta, yTextToSlateElement } from '@slate-yjs/core';
 import * as Y from 'yjs';
 
 export interface SDoc {
-    type: typeof Y.Doc,
-    fields: Record<string, SMap | SArray | SXmlText>
+    type: typeof Y.Doc;
+    fields: Record<string, SMap | SArray | SXmlText>;
 }
 
 interface SMap {
-    type: typeof Y.Map,
-    fields: Record<string, SNode>
+    type: typeof Y.Map;
+    fields: Record<string, SNode>;
 }
 
 interface SArray {
-    type: typeof Y.Array,
-    member: SNode
- }
+    type: typeof Y.Array;
+    member: SNode;
+}
 
 interface SXmlText {
-    type: typeof Y.XmlText,
+    type: typeof Y.XmlText;
 }
 
 type SNode = SMap | SArray | SXmlText | 'string' | 'number';
@@ -38,22 +38,23 @@ export type GetTypeFromSchema<T> = T extends SDoc
 
 export type RecursiveNullable<T> = T extends object
     ? (
-        T extends (infer K)[]
-            ? RecursiveNullable<K>[]
-            : { [P in keyof T]: RecursiveNullable<T[P]> | null | undefined }
-    )
+            T extends (infer K)[]
+                ? RecursiveNullable<K>[]
+                : { [P in keyof T]: RecursiveNullable<T[P]> | null | undefined }
+        )
     : T;
-
 
 export function clearDoc(doc: Y.Doc, schema: SDoc) {
     // NOTE: We do not need to recursively clear data
     Object.entries(schema.fields).forEach(([key, node]) => {
-        const yElement = doc.get(key, node.type)
+        const yElement = doc.get(key, node.type);
         if (yElement instanceof Y.XmlText) {
             yElement.delete(0, yElement.length);
-        } else if (yElement instanceof Y.Array) {
+        }
+        else if (yElement instanceof Y.Array) {
             yElement.delete(0, yElement.length);
-        } else {
+        }
+        else {
             yElement.clear();
         }
     });
@@ -74,13 +75,13 @@ function recursiveTransform(subdoc: Y.Map<any> | Y.Array<any> | Y.XmlText | stri
         if (typeof subdoc !== 'string') {
             return null;
         }
-        return subdoc
+        return subdoc;
     }
     if (schema === 'number') {
         if (typeof subdoc !== 'number') {
             return null;
         }
-        return subdoc
+        return subdoc;
     }
     if (isXmlSchema(schema)) {
         if (!(subdoc instanceof Y.XmlText)) {
@@ -107,7 +108,7 @@ function recursiveTransform(subdoc: Y.Map<any> | Y.Array<any> | Y.XmlText | stri
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const list: any[] = [];
         subdoc.forEach((value) => {
-            list.push(recursiveTransform(value, schema.member))
+            list.push(recursiveTransform(value, schema.member));
         });
         return list;
     }
@@ -116,7 +117,7 @@ function recursiveTransform(subdoc: Y.Map<any> | Y.Array<any> | Y.XmlText | stri
 
 export function transformDoc(doc: Y.Doc, schema: SDoc) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const report: Record<string, any> = {}
+    const report: Record<string, any> = {};
     Object.entries(schema.fields).forEach(([key, node]) => {
         const value = doc.get(key, node.type);
         report[key] = recursiveTransform(value, node);
@@ -141,7 +142,7 @@ function recursiveInit(
         if (typeof data !== 'number') {
             return undefined;
         }
-        return data
+        return data;
     }
 
     if (isXmlSchema(schema)) {
@@ -166,7 +167,7 @@ function recursiveInit(
         }
         Object.entries(schema.fields).forEach(([key, subNode]) => {
             const val = data[key];
-            tmpdoc.set(key, recursiveInit(undefined, subNode, val))
+            tmpdoc.set(key, recursiveInit(undefined, subNode, val));
         });
         return tmpdoc;
     }
@@ -191,6 +192,6 @@ function recursiveInit(
 export function initDoc(doc: Y.Doc, schema: SDoc, data: any) {
     Object.entries(schema.fields).forEach(([key, node]) => {
         const element = doc.get(key, node.type);
-        recursiveInit(element, node, data[key])
+        recursiveInit(element, node, data[key]);
     });
 }

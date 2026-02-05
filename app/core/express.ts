@@ -1,5 +1,5 @@
 import express from 'express';
-import { ValidateError } from "tsoa";
+import { ValidateError } from 'tsoa';
 import expressWebsockets from 'express-ws';
 import fs from 'fs';
 import yaml from 'yaml';
@@ -10,14 +10,14 @@ import cors from 'cors';
 import * as Helmet from 'helmet';
 
 import { AuthError, NotFoundError } from '../utils/error.ts';
-import { RegisterRoutes } from "../../generated/routes.ts";
+import { RegisterRoutes } from '../../generated/routes.ts';
 
 // NOTE: could not import helmet normally!
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const helmet = Helmet.default as unknown as () => any;
 
 interface InitConfig {
-    allowedOrigins: string[],
+    allowedOrigins: string[];
 }
 
 export function initWsApp(
@@ -50,8 +50,8 @@ export function initWsApp(
         // NOTE: Using YAML because JSON giving error
         // https://gitlab.com/gitlab-org/gitlab/-/issues/379097
 
-        const file  = fs.readFileSync('./generated/swagger.yaml', 'utf8')
-        const swaggerDocument = yaml.parse(file)
+        const file = fs.readFileSync('./generated/swagger.yaml', 'utf8');
+        const swaggerDocument = yaml.parse(file);
 
         const swaggerHtml = swaggerUi.generateHTML(swaggerDocument);
         return res.send(swaggerHtml);
@@ -66,7 +66,7 @@ export function initWsApp(
     expressWsApp.use(
         (_req: express.Request, res: express.Response) => {
             res.status(404).send({
-                message: "Resource not found",
+                message: 'Resource not found',
             });
         },
     );
@@ -77,31 +77,31 @@ export function initWsApp(
         (err: unknown, _: express.Request, res: express.Response, __: express.NextFunction) => {
             if (err instanceof ValidateError) {
                 return res.status(422).json({
-                    message: "Validation failed",
+                    message: 'Validation failed',
                     details: err?.fields,
                 });
             }
             if (err instanceof NotFoundError) {
                 return res.status(404).json({
-                    message: "Resource not found",
+                    message: 'Resource not found',
                     details: err.message,
                 });
             }
             if (err instanceof AuthError) {
                 return res.status(401).send({
-                    message: "Unauthorized",
+                    message: 'Unauthorized',
                     details: err.message,
                 });
             }
             if (err instanceof Error) {
                 return res.status(500).json({
-                    message: "Internal server error",
+                    message: 'Internal server error',
                     details: err.message,
                 });
             }
             console.error('Uncaught error:', err);
             return res.status(500).json({
-                message: "Internal server error",
+                message: 'Internal server error',
             });
         },
     );

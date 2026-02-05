@@ -18,7 +18,7 @@ interface SlateBaseNode {
 // Link
 
 interface SlateAnchor extends SlateBaseNode {
-    type: "a";
+    type: 'a';
     url: string;
     children: SlateText[];
 }
@@ -26,58 +26,58 @@ interface SlateAnchor extends SlateBaseNode {
 // Paragraph
 
 interface SlateParagraph extends SlateBaseNode {
-    type: "p";
+    type: 'p';
     children: (SlateText | SlateAnchor)[];
 }
 
 // Heading
 
 interface SlateSubSection extends SlateBaseNode {
-    type: "sub-section";
+    type: 'sub-section';
     children: SlateText[];
 }
 
 // List
 
-interface SlateLi extends SlateBaseNode{
-    type: "li";
+interface SlateLi extends SlateBaseNode {
+    type: 'li';
     children: (SlateParagraph | SlateOl | SlateUl)[];
 }
 
 interface SlateOl extends SlateBaseNode {
-    type: "ol";
+    type: 'ol';
     children: SlateLi[];
 }
 
 interface SlateUl extends SlateBaseNode {
-    type: "ul";
+    type: 'ul';
     children: SlateLi[];
 }
 
 // Table
 
 interface SlateTd extends SlateBaseNode {
-    type: "td";
+    type: 'td';
     children: SlateParagraph[];
 }
 
 interface SlateTr extends SlateBaseNode {
-    type: "tr";
+    type: 'tr';
     children: SlateTd[];
 }
 
 interface SlateTable extends SlateBaseNode {
-    type: "table";
+    type: 'table';
     children: SlateTr[];
 }
 
 interface SlateTableCaption extends SlateBaseNode {
-    type: "caption";
+    type: 'caption';
     children: (SlateText)[];
 }
 
 interface SlateTableBlock extends SlateBaseNode {
-    type: "table-block";
+    type: 'table-block';
     id?: string;
     // NOTE: Has one table and one table caption
     children: (SlateTable | SlateTableCaption)[];
@@ -86,18 +86,18 @@ interface SlateTableBlock extends SlateBaseNode {
 // Image
 
 interface SlateImage extends SlateBaseNode {
-    type: "img";
+    type: 'img';
     objectKey: string;
     children: SlateTr[];
 }
 
 interface SlateImageCaption extends SlateBaseNode {
-    type: "caption";
+    type: 'caption';
     children: (SlateAnchor | SlateText)[];
 }
 
 interface SlateImageBlock extends SlateBaseNode {
-    type: "image-block";
+    type: 'image-block';
     id?: string;
     // NOTE: Has one image and one image caption
     children: (SlateImage | SlateImageCaption)[];

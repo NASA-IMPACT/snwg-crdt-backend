@@ -1,10 +1,10 @@
-import * as Y from 'yjs'
+import * as Y from 'yjs';
 import {
     expect,
     test,
     describe,
     vi,
-} from 'vitest'
+} from 'vitest';
 
 import {
     slateReportToDoc,
@@ -22,23 +22,23 @@ describe('initialize yjs report', () => {
         const doc = new Y.Doc();
         const updatedDoc = slateReportToDoc(report, doc);
 
-        expect(updatedDoc.getMap('__update_states__').size).toBeGreaterThan(0)
-        expect(updatedDoc.getMap('sections_completed').size).toBeGreaterThan(0)
+        expect(updatedDoc.getMap('__update_states__').size).toBeGreaterThan(0);
+        expect(updatedDoc.getMap('sections_completed').size).toBeGreaterThan(0);
 
-        expect(updatedDoc.get('decadal_survey', Y.XmlText).toString().length).toBeGreaterThan(0)
-        expect(updatedDoc.get('detailed_assessment', Y.XmlText).toString().length).toBeGreaterThan(0)
-        expect(updatedDoc.get('missions_phase_c', Y.XmlText).toString().length).toBeGreaterThan(0)
-        expect(updatedDoc.get('resources', Y.XmlText).toString().length).toBeGreaterThan(0)
-        expect(updatedDoc.get('synopsis', Y.XmlText).toString().length).toBeGreaterThan(0)
-        expect(updatedDoc.get('training_resources', Y.XmlText).toString().length).toBeGreaterThan(0)
-        expect(updatedDoc.get('summary_satellite_sensors', Y.XmlText).toString().length).toBe(0)
+        expect(updatedDoc.get('decadal_survey', Y.XmlText).toString().length).toBeGreaterThan(0);
+        expect(updatedDoc.get('detailed_assessment', Y.XmlText).toString().length).toBeGreaterThan(0);
+        expect(updatedDoc.get('missions_phase_c', Y.XmlText).toString().length).toBeGreaterThan(0);
+        expect(updatedDoc.get('resources', Y.XmlText).toString().length).toBeGreaterThan(0);
+        expect(updatedDoc.get('synopsis', Y.XmlText).toString().length).toBeGreaterThan(0);
+        expect(updatedDoc.get('training_resources', Y.XmlText).toString().length).toBeGreaterThan(0);
+        expect(updatedDoc.get('summary_satellite_sensors', Y.XmlText).toString().length).toBe(0);
 
-        expect(updatedDoc.getArray('cmr_products').length).toBeGreaterThan(0)
-        expect(updatedDoc.getArray('snwg_products').length).toBeGreaterThan(0)
-        expect(updatedDoc.getArray('summary_proposed_activities').length).toBeGreaterThan(0)
-        expect(updatedDoc.getArray('commercial_products').length).toBeGreaterThan(0)
-        expect(updatedDoc.getArray('missions_selected').length).toBeGreaterThan(0)
-        expect(updatedDoc.getArray('upcoming_missions_selected').length).toBeGreaterThan(0)
+        expect(updatedDoc.getArray('cmr_products').length).toBeGreaterThan(0);
+        expect(updatedDoc.getArray('snwg_products').length).toBeGreaterThan(0);
+        expect(updatedDoc.getArray('summary_proposed_activities').length).toBeGreaterThan(0);
+        expect(updatedDoc.getArray('commercial_products').length).toBeGreaterThan(0);
+        expect(updatedDoc.getArray('missions_selected').length).toBeGreaterThan(0);
+        expect(updatedDoc.getArray('upcoming_missions_selected').length).toBeGreaterThan(0);
     });
 });
 
@@ -59,12 +59,12 @@ describe('mutate yjs report', () => {
                 }),
             );
         });
-        expect(updatedDoc.getMap('__update_states__').size).toBeGreaterThan(0)
-        expect(updatedDoc.getMap('__update_states__').get('no_of_updates')).toBe(no_of_updates)
-        expect(updatedDoc.getMap('__update_states__').get('last_updated')).toBe(last_updated)
+        expect(updatedDoc.getMap('__update_states__').size).toBeGreaterThan(0);
+        expect(updatedDoc.getMap('__update_states__').get('no_of_updates')).toBe(no_of_updates);
+        expect(updatedDoc.getMap('__update_states__').get('last_updated')).toBe(last_updated);
 
         // TODO: Add a test that this should not change other fields
-    })
+    });
 
     test('should clear all data', () => {
         const doc = new Y.Doc();
@@ -72,23 +72,23 @@ describe('mutate yjs report', () => {
 
         clearReport(updatedDoc);
 
-        expect(updatedDoc.getMap('__update_states__').size).toBe(0)
-        expect(updatedDoc.getMap('sections_completed').size).toBe(0)
+        expect(updatedDoc.getMap('__update_states__').size).toBe(0);
+        expect(updatedDoc.getMap('sections_completed').size).toBe(0);
 
-        expect(updatedDoc.get('decadal_survey', Y.XmlText).toString().length).toBe(0)
-        expect(updatedDoc.get('detailed_assessment', Y.XmlText).toString().length).toBe(0)
-        expect(updatedDoc.get('missions_phase_c', Y.XmlText).toString().length).toBe(0)
-        expect(updatedDoc.get('resources', Y.XmlText).toString().length).toBe(0)
-        expect(updatedDoc.get('synopsis', Y.XmlText).toString().length).toBe(0)
-        expect(updatedDoc.get('training_resources', Y.XmlText).toString().length).toBe(0)
-        expect(updatedDoc.get('summary_satellite_sensors', Y.XmlText).toString().length).toBe(0)
+        expect(updatedDoc.get('decadal_survey', Y.XmlText).toString().length).toBe(0);
+        expect(updatedDoc.get('detailed_assessment', Y.XmlText).toString().length).toBe(0);
+        expect(updatedDoc.get('missions_phase_c', Y.XmlText).toString().length).toBe(0);
+        expect(updatedDoc.get('resources', Y.XmlText).toString().length).toBe(0);
+        expect(updatedDoc.get('synopsis', Y.XmlText).toString().length).toBe(0);
+        expect(updatedDoc.get('training_resources', Y.XmlText).toString().length).toBe(0);
+        expect(updatedDoc.get('summary_satellite_sensors', Y.XmlText).toString().length).toBe(0);
 
-        expect(updatedDoc.getArray('cmr_products').length).toBe(0)
-        expect(updatedDoc.getArray('snwg_products').length).toBe(0)
-        expect(updatedDoc.getArray('summary_proposed_activities').length).toBe(0)
-        expect(updatedDoc.getArray('commercial_products').length).toBe(0)
-        expect(updatedDoc.getArray('missions_selected').length).toBe(0)
-        expect(updatedDoc.getArray('upcoming_missions_selected').length).toBe(0)
+        expect(updatedDoc.getArray('cmr_products').length).toBe(0);
+        expect(updatedDoc.getArray('snwg_products').length).toBe(0);
+        expect(updatedDoc.getArray('summary_proposed_activities').length).toBe(0);
+        expect(updatedDoc.getArray('commercial_products').length).toBe(0);
+        expect(updatedDoc.getArray('missions_selected').length).toBe(0);
+        expect(updatedDoc.getArray('upcoming_missions_selected').length).toBe(0);
     });
 });
 
@@ -112,18 +112,18 @@ describe('export yjs report', () => {
             },
             // NOTE: this is not sent by the client anymore but adding a default value just in case
             summary_satellite_sensors: {
-                "children": [
+                children: [
                     {
-                        type: "p",
+                        type: 'p',
                         children: [
                             {
-                                "text": "",
+                                text: '',
                             },
                         ],
                     },
                 ],
             },
-        }, [], ["id"])
+        }, [], ['id']);
 
         expect(response).toStrictEqual(expected);
     });
@@ -142,7 +142,7 @@ describe('fetchReport', () => {
                 ok: true,
                 status: 200,
                 json: vi.fn().mockResolvedValueOnce(reportFromBackend),
-            })
+            }),
         );
 
         const result = await fetchReport(backendUrl, reportId, authToken);
@@ -155,7 +155,7 @@ describe('fetchReport', () => {
             `${backendUrl}/v2/reports/${reportId}/versions/v1.0`,
             expect.objectContaining({
                 headers: expect.any(Headers),
-            })
+            }),
         );
     });
 
@@ -172,10 +172,10 @@ describe('fetchReport', () => {
                         {
                             ...reportFromBackend.versions[0],
                             version: 'v2.0',
-                        }
-                    ]
+                        },
+                    ],
                 }),
-            })
+            }),
         );
 
         const result = await fetchReport(backendUrl, reportId, authToken);
@@ -191,7 +191,7 @@ describe('fetchReport', () => {
                 ok: false,
                 status: 401,
                 json: vi.fn().mockResolvedValueOnce(reportFromBackend),
-            })
+            }),
         );
 
         const result = await fetchReport(backendUrl, reportId, authToken);
@@ -207,7 +207,7 @@ describe('fetchReport', () => {
                 ok: false,
                 status: 403,
                 json: vi.fn().mockResolvedValueOnce(reportFromBackend),
-            })
+            }),
         );
 
         const result = await fetchReport(backendUrl, reportId, authToken);
@@ -223,7 +223,7 @@ describe('fetchReport', () => {
                 ok: false,
                 status: 404,
                 json: vi.fn().mockResolvedValueOnce(reportFromBackend),
-            })
+            }),
         );
 
         const result = await fetchReport(backendUrl, reportId, authToken);
@@ -238,19 +238,19 @@ describe('fetchReport', () => {
                 ok: false,
                 status: 500,
                 json: vi.fn().mockResolvedValueOnce(reportFromBackend),
-            })
+            }),
         );
 
         const result = await fetchReport(backendUrl, reportId, authToken);
         expect(result).toBeInstanceOf(Error);
-        expect((result as Error).message).toBe("Could not fetch report");
+        expect((result as Error).message).toBe('Could not fetch report');
     });
 
     test('handles fetch exception', async () => {
         // Mock data
         vi.stubGlobal(
             'fetch',
-            vi.fn().mockRejectedValueOnce(new Error('Network error'))
+            vi.fn().mockRejectedValueOnce(new Error('Network error')),
         );
 
         const result = await fetchReport(backendUrl, reportId, authToken);

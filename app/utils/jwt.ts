@@ -1,4 +1,4 @@
-import { CognitoJwtVerifier } from "aws-jwt-verify";
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
 export async function verifyJwt(
     token: string,
@@ -23,10 +23,11 @@ export async function verifyJwt(
             },
         );
         return payload;
-    } catch (err) {
+    }
+    catch (err) {
         if (err instanceof Error) {
             return err;
         }
-        return Error('Failed to verify jwt')
+        return Error('Failed to verify jwt');
     }
 }

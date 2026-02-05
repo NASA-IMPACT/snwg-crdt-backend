@@ -1,4 +1,4 @@
-import { expect, test, describe } from 'vitest'
+import { expect, test, describe } from 'vitest';
 
 import { validateDocName } from './doc.ts';
 
@@ -18,7 +18,7 @@ describe('validateDocName', () => {
 
         expect(result).toBeInstanceOf(Error);
         expect((result as Error).message).toBe(
-            'Document name should start with "document"'
+            'Document name should start with "document"',
         );
     });
 
@@ -27,7 +27,7 @@ describe('validateDocName', () => {
 
         expect(result).toBeInstanceOf(Error);
         expect((result as Error).message).toBe(
-            'Document schema version should be "v1"'
+            'Document schema version should be "v1"',
         );
     });
 
@@ -36,7 +36,7 @@ describe('validateDocName', () => {
 
         expect(result).toBeInstanceOf(Error);
         expect((result as Error).message).toBe(
-            'Document id should be an integer'
+            'Document id should be an integer',
         );
     });
 
@@ -45,7 +45,7 @@ describe('validateDocName', () => {
 
         expect(result).toBeInstanceOf(Error);
         expect((result as Error).message).toBe(
-            'Document id should be an integer'
+            'Document id should be an integer',
         );
     });
 
@@ -53,7 +53,7 @@ describe('validateDocName', () => {
         const result = validateDocName('xyzxyzxyzxyzxyzxyzxyz');
         expect(result).toBeInstanceOf(Error);
         expect((result as Error).message).toBe(
-            'Document name should start with "document"'
+            'Document name should start with "document"',
         );
     });
 });

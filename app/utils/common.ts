@@ -1,12 +1,12 @@
 export function validateCommaSeparatedUrls(value: string) {
-  return value.split(",").map((url) => {
-    const sanitizedUrl = url.trim();
-    if (sanitizedUrl === '') {
-        return '';
-    }
-    new URL(sanitizedUrl);
-    return sanitizedUrl;
-  }).filter((item) => item != '')
+    return value.split(',').map((url) => {
+        const sanitizedUrl = url.trim();
+        if (sanitizedUrl === '') {
+            return '';
+        }
+        new URL(sanitizedUrl);
+        return sanitizedUrl;
+    }).filter(item => item != '');
 }
 
 export function removeNull(
@@ -19,7 +19,7 @@ export function removeNull(
     }
     if (Array.isArray(data)) {
         return data
-            .map((item) => removeNull(item, blacklist, whitelist));
+            .map(item => removeNull(item, blacklist, whitelist));
     }
     if (typeof data === 'object') {
         return Object.keys(data).reduce(
@@ -33,7 +33,7 @@ export function removeNull(
                     return {
                         ...acc,
                         [key]: val,
-                    }
+                    };
                 }
 
                 const newEntry = removeNull(val, blacklist, whitelist);
@@ -50,4 +50,3 @@ export function removeNull(
     }
     return data;
 }
-

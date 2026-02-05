@@ -1,6 +1,6 @@
 import * as Y from 'yjs';
-import { describe, test, expect, vi, afterEach } from "vitest";
-import request from "supertest";
+import { describe, test, expect, vi, afterEach } from 'vitest';
+import request from 'supertest';
 
 import { mockTokenPayload } from '../../assets/jwt.ts';
 import { initWsApp } from '../core/express.ts';
@@ -15,8 +15,7 @@ const wsApp = initWsApp(
     () => {},
 );
 
-
-describe("doc", () => {
+describe('doc', () => {
     const verifyJwtSpy = vi.spyOn(jwt, 'verifyJwt');
     const s3FetchSpy = vi.spyOn(s3Extension.configuration, 'fetch');
 
@@ -25,46 +24,46 @@ describe("doc", () => {
         s3FetchSpy.mockClear();
     });
 
-    test("GET /documents/ with incorrect document format", async () => {
+    test('GET /documents/ with incorrect document format', async () => {
         verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
 
         const res = await request(wsApp)
-            .get("/documents/doc_v1_9999")
-            .set("Authorization", "Bearer my-valid-token")
+            .get('/documents/doc_v1_9999')
+            .set('Authorization', 'Bearer my-valid-token');
 
         expect(verifyJwtSpy).toHaveBeenCalledOnce();
 
         expect(res.status).toBe(422);
         expect(res.body).toStrictEqual({
-            "message": "Validation failed",
-            "details": {
-                "name": {
-                    "message": "Document name should start with \"document\"",
-                    "value": "doc_v1_9999",
-                }
+            message: 'Validation failed',
+            details: {
+                name: {
+                    message: 'Document name should start with "document"',
+                    value: 'doc_v1_9999',
+                },
             },
         });
     });
 
-    test("GET /documents/ with non existing document", async () => {
+    test('GET /documents/ with non existing document', async () => {
         verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
         s3FetchSpy.mockResolvedValueOnce(null);
 
         const res = await request(wsApp)
-            .get("/documents/document_v1_8888")
-            .set("Authorization", "Bearer my-valid-token")
+            .get('/documents/document_v1_8888')
+            .set('Authorization', 'Bearer my-valid-token');
 
         expect(verifyJwtSpy).toHaveBeenCalledOnce();
         expect(s3FetchSpy).toHaveBeenCalledOnce();
 
         expect(res.status).toBe(404);
         expect(res.body).toStrictEqual({
-            "details": "Document not found",
-            "message": "Resource not found",
+            details: 'Document not found',
+            message: 'Resource not found',
         });
     });
 
-    test("GET /doc/ with existing document", async () => {
+    test('GET /doc/ with existing document', async () => {
         verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
 
         const doc = new Y.Doc();
@@ -73,8 +72,8 @@ describe("doc", () => {
         s3FetchSpy.mockResolvedValueOnce(binaryData);
 
         const res = await request(wsApp)
-            .get("/documents/document_v1_9999")
-            .set("Authorization", "Bearer my-valid-token")
+            .get('/documents/document_v1_9999')
+            .set('Authorization', 'Bearer my-valid-token');
 
         expect(verifyJwtSpy).toHaveBeenCalledOnce();
         expect(s3FetchSpy).toHaveBeenCalledOnce();
@@ -90,12 +89,12 @@ describe("doc", () => {
             },
             // NOTE: Added by default
             summary_satellite_sensors: {
-                "children": [
+                children: [
                     {
-                        type: "p",
+                        type: 'p',
                         children: [
                             {
-                                "text": "",
+                                text: '',
                             },
                         ],
                     },

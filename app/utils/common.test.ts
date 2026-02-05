@@ -1,4 +1,4 @@
-import { expect, test, describe } from 'vitest'
+import { expect, test, describe } from 'vitest';
 
 import { validateCommaSeparatedUrls, removeNull } from './common.ts';
 
@@ -36,7 +36,6 @@ describe('validateCommaSeparatedUrls', () => {
         const result = validateCommaSeparatedUrls('');
         expect(result).toEqual([]);
     });
-
 });
 
 describe('removeNull', () => {

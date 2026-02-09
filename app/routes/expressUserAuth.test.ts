@@ -1,4 +1,4 @@
-import { describe, test, expect, vi } from 'vitest';
+import { describe, test, expect, vi, afterEach } from 'vitest';
 import request from 'supertest';
 
 import { initWsApp } from '../core/express.ts';
@@ -11,6 +11,12 @@ const wsApp = initWsApp(
 );
 
 describe('user authentication', () => {
+    const verifyJwtSpy = vi.spyOn(jwt, 'verifyJwt');
+
+    afterEach(() => {
+        verifyJwtSpy.mockClear();
+    });
+
     test('handles missing authentication token', async () => {
         const res = await request(wsApp).get('/collaboration/status');
         expect(res.status).toBe(401);
@@ -21,11 +27,14 @@ describe('user authentication', () => {
     });
 
     test('handles incorrect authentication token', async () => {
-        vi.spyOn(jwt, 'verifyJwt').mockResolvedValueOnce(new Error('JWT string does not consist of exactly 3 parts (header, payload, signature)'));
+        verifyJwtSpy.mockResolvedValueOnce(new Error('JWT string does not consist of exactly 3 parts (header, payload, signature)'));
 
         const res = await request(wsApp)
             .get('/collaboration/status')
             .set('Authorization', 'Bearer my-invalid-token');
+
+        expect(verifyJwtSpy).toHaveBeenCalledOnce();
+
         expect(res.status).toBe(401);
         expect(res.body).toStrictEqual({
             message: 'Unauthorized',
@@ -37,7 +46,7 @@ describe('user authentication', () => {
 describe('service authentication', () => {
     test('handles missing authentication token', async () => {
         const res = await request(wsApp)
-            .put('/documents/document_v1_123/reset')
+            .put('/documents/document_v1_111/reset')
             .send({ document: null });
         expect(res.status).toBe(401);
         expect(res.body).toStrictEqual({
@@ -48,7 +57,7 @@ describe('service authentication', () => {
 
     test('handles invalid authentication token', async () => {
         const res = await request(wsApp)
-            .put('/documents/document_v1_123/reset')
+            .put('/documents/document_v1_222/reset')
             .set('Authorization', 'Bearer abcabcabcabc')
             .send({ document: null });
         expect(res.status).toBe(401);

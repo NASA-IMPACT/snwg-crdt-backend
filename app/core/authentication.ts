@@ -1,13 +1,15 @@
-import express from 'express';
+import { type Request as ExpressRequest } from 'express';
 
-import { verifyJwt } from './utils/jwt.ts';
-import { AuthError } from './utils/error.ts';
-import env from './utils/env.ts';
+import { verifyJwt, verifyServiceToken } from '../utils/jwt.ts';
+import { AuthError } from '../utils/error.ts';
+import env from '../utils/env.ts';
 
 export async function expressAuthentication(
-    request: express.Request,
+    request: ExpressRequest,
     securityName: string,
     // scopes?: string[]
+    // FIXME: node-tsc does not consider this valid
+    // ): Promise<ExpressRequest['user']> {
 ) {
     if (securityName !== 'userAuthJwt' && securityName !== 'backendAuthToken') {
         // NOTE: Express error handler handles AuthError
@@ -46,7 +48,8 @@ export async function expressAuthentication(
         };
     }
     else {
-        if (token !== env.SERVICE_TOKEN) {
+        const isValid = verifyServiceToken(token, env.SERVICE_TOKEN);
+        if (!isValid) {
             // NOTE: Express error handler handles AuthError
             throw new AuthError('Service token is not correct', 401);
         }

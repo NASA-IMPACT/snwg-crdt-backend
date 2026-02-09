@@ -1,5 +1,6 @@
-import { hocuspocusServer } from './core/hocuspocus.ts';
 import { initWsApp } from './core/express.ts';
+import { registerSwaggerUi } from './core/swagger.ts';
+import { registerHocuspocus } from './core/hocuspocus.ts';
 
 import env from './utils/env.ts';
 
@@ -11,10 +12,8 @@ const expressWsApp = initWsApp(
         ],
     },
     (app) => {
-        // Register collaboration endpoint to upgrade to websocket
-        app.ws('/collaboration/', (websocket, request) => {
-            hocuspocusServer.handleConnection(websocket, request);
-        });
+        registerSwaggerUi(app);
+        registerHocuspocus(app);
     },
 );
 

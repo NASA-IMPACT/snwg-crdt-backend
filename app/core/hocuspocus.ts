@@ -1,7 +1,8 @@
 import * as Y from 'yjs';
-import { Connection, Hocuspocus, type Extension } from '@hocuspocus/server';
+import { type Configuration, type Connection, Hocuspocus, type Extension } from '@hocuspocus/server';
 import { Logger } from '@hocuspocus/extension-logger';
 import { S3 } from '@hocuspocus/extension-s3';
+import { type Application } from 'express-ws';
 
 import {
     fetchReport,
@@ -23,123 +24,8 @@ export const s3Extension = new S3({
 
 const loggerExtention = new Logger();
 
-// Configure hocuspocus server
-export const hocuspocusServer = new Hocuspocus({
-    extensions: [
-        s3Extension satisfies Extension,
-        loggerExtention satisfies Extension,
-    ],
-    onConnect: async (data) => {
-        const { documentName, context } = data;
-        const docInfo = validateDocName(documentName);
-
-        if (docInfo instanceof Error) {
-            // NOTE: Throwing exception so that connection is not established
-            throw docInfo;
-        }
-
-        return {
-            ...context,
-            doc: docInfo,
-        };
-    },
-    onAuthenticate: async (data) => {
-        // NOTE: onAuthenticate will only be called if user supplied a "token"
-        // TODO: check what happens if no token is sent?
-        const { token, context } = data;
-
-        const tokenData = await verifyJwt(
-            token,
-            env.WEB_COGNITO_USER_POOL_ID,
-            env.WEB_COGNITO_USER_POOL_CLIENT_ID,
-            env.COGNITO_ISSUER,
-            'id',
-        );
-
-        if (tokenData instanceof Error) {
-            // NOTE: Throwing exception so that authenitcation fails
-            throw Error('Token must be valid!');
-        }
-
-        // TODO: Update permissions from user group and pass permission function
-        const id = tokenData['cognito:username'];
-        const groups = tokenData['cognito:groups'];
-        if (!groups || groups.length <= 0) {
-            // NOTE: Throwing exception so that authenitcation fails
-            throw Error('User should be in a group to edit documents');
-        }
-
-        return {
-            ...context,
-            user: {
-                id: id as string,
-                username: tokenData.preferred_username as string,
-                email: tokenData.email as string,
-                groups: groups as string[],
-                token,
-            },
-        };
-    },
-    onLoadDocument: async (data) => {
-        // NOTE: We can load the data from extension directly if it exists in s3
-        const updateFromS3 = await s3Extension.configuration.fetch(data);
-        if (updateFromS3 !== null) {
-            Y.applyUpdate(data.document, updateFromS3);
-            console.debug(`Loaded document "${data.documentName}" from s3`);
-            return data.document;
-        }
-
-        // NOTE: This means we are creating a direct connection.
-        // In this case, we should not load data from API
-        if (!data.context || !data.context.user) {
-            // NOTE: Throwing exception so that empty document is not created
-            throw Error(`Could not load document "${data.documentName}" from s3`);
-        }
-
-        // NOTE: If document not in S3, get from server
-        const { token } = data.context.user;
-        const { id } = data.context.doc;
-        const reportV1 = await fetchReport(
-            env.BACKEND_HOST,
-            id,
-            token,
-        );
-
-        if (reportV1 instanceof Error) {
-            // NOTE: Throwing exception so that empty document is not created
-            throw reportV1;
-        }
-
-        slateReportToDoc(reportV1, data.document);
-        console.debug(`Loaded document "${data.documentName}" from API`);
-        return data.document;
-    },
-    onChange: async (data) => {
-        const {
-            document,
-            transactionOrigin,
-        } = data;
-
-        // NOTE: We only want to update these counts when changes are from the client
-        const connection: Connection | null | undefined = transactionOrigin;
-        if (connection === null || connection === undefined) {
-            return;
-        }
-
-        document.transact(() => {
-            changeReportUpdateStates(
-                document,
-                oldValue => ({
-                    no_of_updates: (oldValue?.no_of_updates ?? 0) + 1,
-                    last_updated: new Date().getTime(),
-                }),
-            );
-        });
-    },
-});
-
 // Get a document from hocuspocus or s3
-export async function getDoc(name: string) {
+export async function getDoc(name: string, hocuspocusServer: Hocuspocus) {
     const doc = hocuspocusServer.documents.get(name);
     if (doc) {
         return doc;
@@ -154,4 +40,135 @@ export async function getDoc(name: string) {
 
     Y.applyUpdate(s3Doc, fetched);
     return s3Doc;
+}
+
+export function registerHocuspocus(app: Application, otherConfig?: Partial<Configuration>) {
+    // Configure hocuspocus server
+    const hocuspocusServer = new Hocuspocus({
+        extensions: [
+            s3Extension satisfies Extension,
+            loggerExtention satisfies Extension,
+        ],
+        onConnect: async (data) => {
+            const { documentName, context } = data;
+            const docInfo = validateDocName(documentName);
+
+            if (docInfo instanceof Error) {
+                // NOTE: Throwing exception so that connection is not established
+                throw docInfo;
+            }
+
+            return {
+                ...context,
+                doc: docInfo,
+            };
+        },
+        onAuthenticate: async (data) => {
+            // NOTE: onAuthenticate will only be called if user supplied a "token"
+            // TODO: check what happens if no token is sent?
+            const { token, context } = data;
+
+            const tokenData = await verifyJwt(
+                token,
+                env.WEB_COGNITO_USER_POOL_ID,
+                env.WEB_COGNITO_USER_POOL_CLIENT_ID,
+                env.COGNITO_ISSUER,
+                'id',
+            );
+
+            if (tokenData instanceof Error) {
+                // NOTE: Throwing exception so that authenitcation fails
+                throw Error('Token must be valid!');
+            }
+
+            // TODO: Update permissions from user group and pass permission function
+            const id = tokenData['cognito:username'];
+            const groups = tokenData['cognito:groups'];
+            if (!groups || groups.length <= 0) {
+                // NOTE: Throwing exception so that authenitcation fails
+                throw Error('User should be in a group to edit documents');
+            }
+
+            return {
+                ...context,
+                user: {
+                    id: id as string,
+                    username: tokenData.preferred_username as string,
+                    email: tokenData.email as string,
+                    groups: groups as string[],
+                    token,
+                },
+            };
+        },
+        onLoadDocument: async (data) => {
+            // NOTE: We can load the data from extension directly if it exists in s3
+            const updateFromS3 = await s3Extension.configuration.fetch(data);
+            if (updateFromS3 !== null) {
+                Y.applyUpdate(data.document, updateFromS3);
+                console.debug(`Loaded document "${data.documentName}" from s3`);
+                return data.document;
+            }
+
+            // NOTE: This means we are creating a direct connection.
+            // In this case, we should not load data from API
+            if (!data.context || !data.context.user) {
+                // NOTE: Throwing exception so that empty document is not created
+                throw Error(`Could not load document "${data.documentName}" from s3`);
+            }
+
+            // NOTE: If document not in S3, get from server
+            const { token } = data.context.user;
+            const { id } = data.context.doc;
+            const reportV1 = await fetchReport(
+                env.BACKEND_HOST,
+                id,
+                token,
+            );
+
+            if (reportV1 instanceof Error) {
+                // FIXME: Convert exception to CloseEvent
+                // NOTE: Throwing exception so that empty document is not created
+                throw {
+                    code: 9000,
+                    reason: reportV1.message,
+                };
+            }
+
+            slateReportToDoc(reportV1, data.document);
+            console.debug(`Loaded document "${data.documentName}" from API`);
+            return data.document;
+        },
+        onChange: async (data) => {
+            const {
+                document,
+                transactionOrigin,
+            } = data;
+
+            // NOTE: We only want to update these counts when changes are from the client
+            const connection: Connection | null | undefined = transactionOrigin;
+            if (connection === null || connection === undefined) {
+                return;
+            }
+
+            document.transact(() => {
+                changeReportUpdateStates(
+                    document,
+                    oldValue => ({
+                        no_of_updates: (oldValue?.no_of_updates ?? 0) + 1,
+                        last_updated: new Date().getTime(),
+                    }),
+                );
+            });
+        },
+        ...otherConfig,
+    });
+
+    // NOTE: We are attaching hocuspocus so that we can access this later
+    app.locals.hocuspocus = hocuspocusServer;
+
+    app.ws('/collaboration/', (websocket, request) => {
+        hocuspocusServer.handleConnection(websocket, request);
+    });
+
+    return hocuspocusServer;
 }

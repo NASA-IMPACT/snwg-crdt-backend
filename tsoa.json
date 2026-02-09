@@ -23,7 +23,7 @@
     "routes": {
         "routesDir": "generated",
         "rewriteRelativeImportExtensions": true,
-        "authenticationModule": "./app/authentication.ts",
+        "authenticationModule": "./app/core/authentication.ts",
         "middleware": "express"
     }
 }

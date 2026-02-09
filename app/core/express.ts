@@ -1,9 +1,6 @@
 import express from 'express';
 import { ValidateError } from 'tsoa';
 import expressWebsockets from 'express-ws';
-import fs from 'fs';
-import yaml from 'yaml';
-import swaggerUi from 'swagger-ui-express';
 import morgan from 'morgan';
 import compression from 'compression';
 import cors from 'cors';
@@ -45,18 +42,6 @@ export function initWsApp(
         origin: config.allowedOrigins,
     }));
 
-    // Support swagger ui
-    expressWsApp.use('/docs', swaggerUi.serve, async (_req: express.Request, res: express.Response) => {
-        // NOTE: Using YAML because JSON giving error
-        // https://gitlab.com/gitlab-org/gitlab/-/issues/379097
-
-        const file = fs.readFileSync('./generated/swagger.yaml', 'utf8');
-        const swaggerDocument = yaml.parse(file);
-
-        const swaggerHtml = swaggerUi.generateHTML(swaggerDocument);
-        return res.send(swaggerHtml);
-    });
-
     preRoutesRegistrationHook(expressWsApp);
 
     // Register other routes from tsoa
@@ -94,16 +79,18 @@ export function initWsApp(
                 });
             }
             if (err instanceof Error) {
+                console.error(err);
                 return res.status(500).json({
                     message: 'Internal server error',
                     details: err.message,
                 });
             }
-            console.error('Uncaught error:', err);
+            console.error(err);
             return res.status(500).json({
                 message: 'Internal server error',
             });
         },
     );
+
     return expressWsApp;
 }

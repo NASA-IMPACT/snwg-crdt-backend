@@ -5,9 +5,9 @@ import {
     Security,
     Tags,
     Example,
+    Request,
 } from 'tsoa';
-
-import { hocuspocusServer } from '../core/hocuspocus.ts';
+import { type Request as ExpressRequest } from 'express';
 
 /**
  * Represents the current status of the collaboration server.
@@ -36,7 +36,10 @@ export class CollaborationController extends Controller {
         openDocs: 5,
         openConnections: 12,
     })
-    public async getCollaborationStatus(): Promise<CollaborationStatus> {
+    public async getCollaborationStatus(
+        @Request() request: ExpressRequest,
+    ): Promise<CollaborationStatus> {
+        const hocuspocusServer = request.app.locals.hocuspocus;
         return {
             openDocs: hocuspocusServer.getDocumentsCount(),
             openConnections: hocuspocusServer.getConnectionsCount(),

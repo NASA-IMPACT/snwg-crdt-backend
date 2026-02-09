@@ -8,10 +8,12 @@ import {
     Tags,
     Path,
     ValidateError,
+    Request,
 } from 'tsoa';
+import { type Request as ExpressRequest } from 'express';
 
 import { validateDocName } from '../utils/doc.ts';
-import { hocuspocusServer, getDoc } from '../core/hocuspocus.ts';
+import { getDoc } from '../core/hocuspocus.ts';
 import {
     clearReport,
     transformReport,
@@ -75,6 +77,7 @@ export class DocController extends Controller {
     public async resetDoc(
         @Path() name: string,
         @Body() body: Report,
+        @Request() request: ExpressRequest,
     ): Promise<DocResetResponse> {
         const docInfo = validateDocName(name);
         if (docInfo instanceof Error) {
@@ -87,6 +90,7 @@ export class DocController extends Controller {
 
         // NOTE: We can ignore if it does not exist
         try {
+            const hocuspocusServer = request.app.locals.hocuspocus;
             const connection = await hocuspocusServer.openDirectConnection(name);
             const connectionDoc = connection.document;
 
@@ -115,6 +119,7 @@ export class DocController extends Controller {
     @Security('userAuthJwt', ['document/read'])
     public async getDoc(
         @Path() name: string,
+        @Request() request: ExpressRequest,
     ): Promise<DocGetResponse> {
         const docInfo = validateDocName(name);
         if (docInfo instanceof Error) {
@@ -125,7 +130,8 @@ export class DocController extends Controller {
             );
         }
 
-        const doc = await getDoc(name);
+        const hocuspocusServer = request.app.locals.hocuspocus;
+        const doc = await getDoc(name, hocuspocusServer);
         if (doc instanceof Error) {
             throw doc;
         }

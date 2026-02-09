@@ -1,9 +1,9 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
     test: {
         env: {
-            NODE_ENV: "test",
+            NODE_ENV: 'test',
             COGNITO_ISSUER: 'http://example.com',
             AWS_RESOURCES_ENDPOINT: 'http://example.com',
             WEB_COGNITO_USER_POOL_ID: 'xx-xxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
@@ -18,7 +18,7 @@ export default defineConfig({
         coverage: {
             provider: 'v8', // or 'istanbul'
             include: ['app/**/*.{ts,js}'],
-            exclude: ['app/**/*.test.ts'],
+            exclude: ['app/**/*.test.ts', 'app/**/*.d.ts'],
         },
     },
-})
+});

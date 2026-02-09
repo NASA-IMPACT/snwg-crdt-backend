@@ -2,13 +2,18 @@ import { describe, test, expect, vi } from 'vitest';
 import request from 'supertest';
 
 import { initWsApp } from '../core/express.ts';
+import { s3Extension, registerHocuspocus } from '../core/hocuspocus.ts';
 import * as jwt from '../../app/utils/jwt.ts';
 import { mockTokenPayload } from '../../assets/jwt.ts';
 
 const wsApp = initWsApp(
     { allowedOrigins: [] },
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    () => {},
+    (app) => {
+        registerHocuspocus(app, {
+            debounce: 0,
+            maxDebounce: 0,
+        });
+    },
 );
 
 describe('collaboration', () => {

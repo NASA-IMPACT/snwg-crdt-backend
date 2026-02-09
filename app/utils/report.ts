@@ -2,7 +2,7 @@ import * as Y from 'yjs';
 
 import { type SlateElement } from './doc.ts';
 import { AuthError, NotFoundError } from './error.ts';
-import { clearDoc, initDoc, SDoc, GetTypeFromSchema, transformDoc, RecursiveNullable } from './schema.ts';
+import { clearDoc, initDoc, type SDoc, type GetTypeFromSchema, transformDoc, type RecursiveNullable } from './schema.ts';
 
 interface Mission {
     mission_id: string;

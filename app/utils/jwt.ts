@@ -31,3 +31,7 @@ export async function verifyJwt(
         return Error('Failed to verify jwt');
     }
 }
+
+export function verifyServiceToken(token: string, expected: string) {
+    return token === expected;
+}

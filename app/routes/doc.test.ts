@@ -6,16 +6,21 @@ import { mockTokenPayload } from '../../assets/jwt.ts';
 import { initWsApp } from '../core/express.ts';
 import { s3Extension } from '../core/hocuspocus.ts';
 import * as jwt from '../../app/utils/jwt.ts';
+import { s3Extension, registerHocuspocus } from '../core/hocuspocus.ts';
 import { slateReportToDoc } from '../../app/utils/report.ts';
 import { report } from '../../assets/report.ts';
 
-const wsApp = initWsApp(
-    { allowedOrigins: [] },
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    () => {},
-);
+describe('REST doc', () => {
+    const wsApp = initWsApp(
+        { allowedOrigins: [] },
+        (app) => {
+            registerHocuspocus(app, {
+                debounce: 0,
+                maxDebounce: 0,
+            });
+        },
+    );
 
-describe('doc', () => {
     const verifyJwtSpy = vi.spyOn(jwt, 'verifyJwt');
     const s3FetchSpy = vi.spyOn(s3Extension.configuration, 'fetch');
 

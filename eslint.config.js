@@ -12,4 +12,9 @@ export default tseslint.config(
         semi: true,
         jsx: false,
     }),
+    {
+        rules: {
+            '@typescript-eslint/consistent-type-imports': 'error',
+        },
+    },
 );

@@ -1,5 +1,9 @@
 import * as Y from 'yjs';
 import { type Configuration, type Connection, Hocuspocus, type Extension } from '@hocuspocus/server';
+import {
+    type CloseEvent,
+    Unauthorized,
+} from '@hocuspocus/common';
 import { Logger } from '@hocuspocus/extension-logger';
 import { S3 } from '@hocuspocus/extension-s3';
 import { type Application } from 'express-ws';
@@ -55,7 +59,11 @@ export function registerHocuspocus(app: Application, otherConfig?: Partial<Confi
 
             if (docInfo instanceof Error) {
                 // NOTE: Throwing exception so that connection is not established
-                throw docInfo;
+                const closeEvent: CloseEvent = {
+                    code: 9001,
+                    reason: 'Invalid Document Name',
+                };
+                throw closeEvent;
             }
 
             return {
@@ -64,8 +72,7 @@ export function registerHocuspocus(app: Application, otherConfig?: Partial<Confi
             };
         },
         onAuthenticate: async (data) => {
-            // NOTE: onAuthenticate will only be called if user supplied a "token"
-            // TODO: check what happens if no token is sent?
+            // NOTE: onAuthenticate will be with empty string if user does not supply a "token"
             const { token, context } = data;
 
             const tokenData = await verifyJwt(
@@ -78,7 +85,7 @@ export function registerHocuspocus(app: Application, otherConfig?: Partial<Confi
 
             if (tokenData instanceof Error) {
                 // NOTE: Throwing exception so that authenitcation fails
-                throw Error('Token must be valid!');
+                throw Unauthorized;
             }
 
             // TODO: Update permissions from user group and pass permission function
@@ -86,7 +93,7 @@ export function registerHocuspocus(app: Application, otherConfig?: Partial<Confi
             const groups = tokenData['cognito:groups'];
             if (!groups || groups.length <= 0) {
                 // NOTE: Throwing exception so that authenitcation fails
-                throw Error('User should be in a group to edit documents');
+                throw Unauthorized;
             }
 
             return {
@@ -113,7 +120,11 @@ export function registerHocuspocus(app: Application, otherConfig?: Partial<Confi
             // In this case, we should not load data from API
             if (!data.context || !data.context.user) {
                 // NOTE: Throwing exception so that empty document is not created
-                throw Error(`Could not load document "${data.documentName}" from s3`);
+                const closeEvent: CloseEvent = {
+                    code: 9000,
+                    reason: 'Document Load Failed',
+                };
+                throw closeEvent;
             }
 
             // NOTE: If document not in S3, get from server
@@ -126,12 +137,12 @@ export function registerHocuspocus(app: Application, otherConfig?: Partial<Confi
             );
 
             if (reportV1 instanceof Error) {
-                // FIXME: Convert exception to CloseEvent
                 // NOTE: Throwing exception so that empty document is not created
-                throw {
+                const closeEvent: CloseEvent = {
                     code: 9000,
-                    reason: reportV1.message,
+                    reason: 'Document Load Failed',
                 };
+                throw closeEvent;
             }
 
             slateReportToDoc(reportV1, data.document);

@@ -44,11 +44,12 @@ export const realTokenPayload = {
     'cognito:groups': ['curator'],
 };
 
+const now = new Date().getTime();
 export const mockTokenPayload: CognitoJwtPayload = {
-    'exp': 1234567890,
+    'exp': now + 1 * 60 * 60 * 1000,
     'iss': `${env.COGNITO_ISSUER}/${env.WEB_COGNITO_USER_POOL_ID}`,
     'sub': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
-    'auth_time': 1234567890,
+    'auth_time': now,
     'iat': 1234567890,
     'event_id': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     'token_use': 'id',

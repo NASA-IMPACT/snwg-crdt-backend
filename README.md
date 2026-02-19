@@ -27,8 +27,6 @@ docker run -it \
 - HIGH
     - Check if user has user has write access to document
 - MEDIUM
-    - Check updated authentication token
-        - beforeHandleMessage and onTokenSync
     - Add JSDoc linting in eslint
         - https://www.npmjs.com/package/eslint-plugin-jsdoc
 - LOW

@@ -4,7 +4,7 @@ import {
     Get,
     Tags,
     Example,
-} from "tsoa";
+} from 'tsoa';
 
 /**
  * Represents the system health.
@@ -13,13 +13,13 @@ interface SystemHealth {
     ok: boolean;
 }
 
-@Tags("Health")
-@Route("/health/")
+@Tags('Health')
+@Route('/health/')
 export class HealthController extends Controller {
-     /**
+    /**
      * Returns the health of the collaboration server,
      */
-    @Get("/")
+    @Get('/')
     @Example<SystemHealth>({
         ok: true,
     })

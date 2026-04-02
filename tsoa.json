@@ -1,6 +1,6 @@
 {
   "entryFile": "app/main.ts",
-    "controllerPathGlobs": ["./app/routes/**/*.ts"],
+    "controllerPathGlobs": ["./app/routes/**/!(*.test)*.ts"],
     "spec": {
         "outputDirectory": "generated",
         "specVersion": 3,
@@ -23,7 +23,7 @@
     "routes": {
         "routesDir": "generated",
         "rewriteRelativeImportExtensions": true,
-        "authenticationModule": "./app/authentication.ts",
+        "authenticationModule": "./app/core/authentication.ts",
         "middleware": "express"
     }
 }

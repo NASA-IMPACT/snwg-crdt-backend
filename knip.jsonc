@@ -1,13 +1,15 @@
 {
     "$schema": "https://unpkg.com/knip@5/schema.json",
     "entry": [
-        "app/main.ts!"
+        "app/main.ts!",
+        "app/**/*.test.ts"
     ],
     "ignoreDependencies": [
         "nodemon"
     ],
     "project": [
         "app/**/*.ts",
+        "assets/**/*.ts",
         "generated/**/*.ts"
     ]
 }

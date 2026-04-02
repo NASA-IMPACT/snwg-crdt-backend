@@ -73,3 +73,32 @@ jobs:
 
       - name: Lint JS
         run: pnpm lint:ts
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      # Required to checkout the code
+      contents: read
+      # Required to put a comment into the pull-request
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Generate spec and routes
+        run: pnpm tsoa:generate
+
+      - name: Test
+        run: pnpm test:coverage
+
+      - name: 'Report coverage'
+        uses:  davelosert/vitest-coverage-report-action@v2

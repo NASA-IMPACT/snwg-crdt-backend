@@ -1,37 +1,35 @@
-import * as Y from 'yjs'
-
-import env from '../utils/env.ts';
+import * as Y from 'yjs';
 
 import { type SlateElement } from './doc.ts';
 import { AuthError, NotFoundError } from './error.ts';
-import { clearDoc, initDoc, SDoc, GetTypeFromSchema, transformDoc, RecursiveNullable } from './schema.ts';
+import { clearDoc, initDoc, type SDoc, type GetTypeFromSchema, transformDoc, type RecursiveNullable } from './schema.ts';
 
 interface Mission {
     mission_id: string;
-    instrument_ids?: string[] | null;
+    instrument_ids?: string[];
 }
 
-interface ReportContent {
-    decadal_survey?: SlateElement | null,
-    detailed_assessment?: SlateElement | null,
-    missions_phase_c?: SlateElement | null,
-    resources?: SlateElement | null,
-    synopsis?: SlateElement | null,
-    training_resources?: SlateElement | null,
-    summary_satellite_sensors?: SlateElement | null, // NOTE: Seems to be deprecated
+export interface ReportDocument {
+    decadal_survey?: SlateElement;
+    detailed_assessment?: SlateElement;
+    missions_phase_c?: SlateElement;
+    resources?: SlateElement;
+    synopsis?: SlateElement;
+    training_resources?: SlateElement;
+    summary_satellite_sensors?: SlateElement; // NOTE: Seems to be deprecated
 
-    // department?: string, // FIXME: How is this set
+    // department?: string; // FIXME: How is this set
 
-    cmr_products?: string[] | null,
-    snwg_products?: number[] | null,
-    summary_proposed_activities?: number[] | null,
-    commercial_products?: number[] | null,
+    cmr_products?: string[];
+    snwg_products?: number[];
+    summary_proposed_activities?: number[];
+    commercial_products?: number[];
 
-    missions_selected?: Mission[] | null,
-    upcoming_missions_selected?: Mission[] | null,
+    missions_selected?: Mission[];
+    upcoming_missions_selected?: Mission[];
 }
 
-type Completeness = "complete" | "incomplete";
+type Completeness = 'complete' | 'incomplete';
 
 interface ReportSectionCompleteness {
     department?: Completeness | null; // NOTE: Seems to be deprecated
@@ -42,8 +40,8 @@ interface ReportSectionCompleteness {
 }
 
 export interface Report {
-    version: string | null | undefined;
-    document: ReportContent;
+    version?: string;
+    document: ReportDocument;
     last_updated_at: string;
     sections_completed: ReportSectionCompleteness;
 }
@@ -56,7 +54,7 @@ export const schema = {
             fields: {
                 last_updated: 'number',
                 no_of_updates: 'number',
-            }
+            },
         },
         sections_completed: {
             type: Y.Map,
@@ -102,9 +100,9 @@ export const schema = {
                     instrument_ids: {
                         type: Y.Array,
                         member: 'string',
-                    }
-                }
-            }
+                    },
+                },
+            },
         },
         upcoming_missions_selected: {
             type: Y.Array,
@@ -115,15 +113,15 @@ export const schema = {
                     instrument_ids: {
                         type: Y.Array,
                         member: 'string',
-                    }
-                }
-            }
+                    },
+                },
+            },
         },
     },
 } satisfies SDoc;
 
 export function transformReport(doc: Y.Doc) {
-    type CollabReport = RecursiveNullable<GetTypeFromSchema<typeof schema>>
+    type CollabReport = RecursiveNullable<GetTypeFromSchema<typeof schema>>;
     return transformDoc(doc, schema) as CollabReport;
 }
 
@@ -165,7 +163,7 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
         training_resources: document.training_resources?.children ?? [
             { type: 'p', children: [{ text: '' }] },
         ],
-        summary_satellite_sensors: document.training_resources?.children ?? [
+        summary_satellite_sensors: document.summary_satellite_sensors?.children ?? [
             { type: 'p', children: [{ text: '' }] },
         ],
 
@@ -174,7 +172,7 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
         summary_proposed_activities: document.summary_proposed_activities ?? [],
         commercial_products: document.commercial_products ?? [],
 
-        missions_selected: document.missions_selected?.map((mission) => ({
+        missions_selected: document.missions_selected?.map(mission => ({
             mission_id: mission.mission_id,
             instrument_ids: mission.instrument_ids ?? [],
         })) ?? [
@@ -183,7 +181,7 @@ export function slateReportToDoc(report: Report, doc: Y.Doc) {
                 instrument_ids: [],
             },
         ],
-        upcoming_missions_selected: document.upcoming_missions_selected?.map((mission) => ({
+        upcoming_missions_selected: document.upcoming_missions_selected?.map(mission => ({
             mission_id: mission.mission_id,
             instrument_ids: mission.instrument_ids ?? [],
         })) ?? [
@@ -202,7 +200,6 @@ export function clearReport(doc: Y.Doc) {
     clearDoc(doc, schema);
 }
 
-
 interface DocUpdateStatus {
     last_updated?: number;
     no_of_updates?: number;
@@ -220,8 +217,8 @@ export function changeReportUpdateStates(
     });
 }
 
-export async function fetchReport(reportId: number, authToken: string) {
-    const url = `${env.BACKEND_HOST}/v2/reports/${reportId}/versions/v1.0`;
+export async function fetchReport(backendUrl: string, reportId: number, authToken: string) {
+    const url = `${backendUrl}/v2/reports/${reportId}/versions/v1.0`;
     const authorization = `Bearer ${authToken}`;
 
     let response;
@@ -230,20 +227,22 @@ export async function fetchReport(reportId: number, authToken: string) {
             url,
             {
                 headers: new Headers({
-                    'Authorization': authorization,
-                    'Accept': 'application/json',
+                    Authorization: authorization,
+                    Accept: 'application/json',
                 }),
-            }
+            },
         );
         if (!response.ok) {
             if (response.status === 404) {
                 return new NotFoundError('Report not found');
-            } else if (response.status === 401 || response.status === 403) {
+            }
+            else if (response.status === 401 || response.status === 403) {
                 return new AuthError('Could not fetch report', response.status);
             }
             return Error('Could not fetch report');
         }
-    } catch (error) {
+    }
+    catch (error) {
         // FIXME: We should check if we want to sanitize the message
         if (error instanceof Error) {
             return error;
@@ -256,7 +255,8 @@ export async function fetchReport(reportId: number, authToken: string) {
         responseContent = await response.json() as {
             versions: Report[];
         };
-    } catch (error) {
+    }
+    catch (error) {
         // FIXME: We should check if we want to sanitize the message
         if (error instanceof Error) {
             return error;
@@ -264,7 +264,7 @@ export async function fetchReport(reportId: number, authToken: string) {
         return Error('Could not parse report as JSON');
     }
 
-    const reportV1 = responseContent.versions.find((item) => item.version === 'v1.0');
+    const reportV1 = responseContent.versions.find(item => item.version === 'v1.0');
     if (!reportV1) {
         return Error('Report with version v1.0 not found');
     }

@@ -24,5 +24,5 @@
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true
     },
-    "include": ["app/main.ts"]
+    "include": ["app/main.ts", "app/**/*.d.ts", "app/**/*.test.ts"]
 }

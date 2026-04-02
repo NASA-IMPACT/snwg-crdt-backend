@@ -8,10 +8,12 @@ import {
     Tags,
     Path,
     ValidateError,
-} from "tsoa";
+    Request,
+} from 'tsoa';
+import { type Request as ExpressRequest } from 'express';
 
 import { validateDocName } from '../utils/doc.ts';
-import { hocuspocusServer, getDoc } from '../core/hocuspocus.ts';
+import { getDoc } from '../core/hocuspocus.ts';
 import {
     clearReport,
     transformReport,
@@ -30,62 +32,65 @@ interface DocResetResponse {
  */
 type UnixTimestamp = number;
 
+// FIXME: Do we need null here?
 interface DocGetResponse {
     __update_states__?: {
         last_updated?: UnixTimestamp | null;
         no_of_updates?: number | null;
-    } | null,
+    } | null;
     sections_completed?: {
-        department?: string | null,
-        synopsis?: string | null,
-        assessment_response?: string | null,
-        summary_sensors_products?: string | null,
-        training_resources?: string | null,
-    } | null,
-    decadal_survey?: SlateElement | null,
-    detailed_assessment?: SlateElement | null,
-    missions_phase_c?: SlateElement | null,
-    resources?: SlateElement | null,
-    synopsis?: SlateElement | null,
-    training_resources?: SlateElement | null,
-    summary_satellite_sensors?: SlateElement | null,
+        department?: string | null;
+        synopsis?: string | null;
+        assessment_response?: string | null;
+        summary_sensors_products?: string | null;
+        training_resources?: string | null;
+    } | null;
+    decadal_survey?: SlateElement | null;
+    detailed_assessment?: SlateElement | null;
+    missions_phase_c?: SlateElement | null;
+    resources?: SlateElement | null;
+    synopsis?: SlateElement | null;
+    training_resources?: SlateElement | null;
+    summary_satellite_sensors?: SlateElement | null;
     cmr_products?: string[] | null;
-    snwg_products?: number[] | null,
-    summary_proposed_activities?: number[] | null,
-    commercial_products?: number[] | null,
+    snwg_products?: number[] | null;
+    summary_proposed_activities?: number[] | null;
+    commercial_products?: number[] | null;
     missions_selected?: {
-        mission_id?: string | null,
-        instrument_id?: string[] | null,
-    }[] | null,
+        mission_id?: string | null;
+        instrument_id?: string[] | null;
+    }[] | null;
     upcoming_missions_selected?: {
-        mission_id?: string | null,
-        instrument_id?: string[] | null,
-    }[] | null,
+        mission_id?: string | null;
+        instrument_id?: string[] | null;
+    }[] | null;
 }
 
-@Tags("Documents")
-@Route("/documents/")
+@Tags('Documents')
+@Route('/documents/')
 export class DocController extends Controller {
-     /**
+    /**
      * Reset the document.
      */
-    @Put("/{name}/reset")
-    @Security("backendAuthToken", ["document/write"])
+    @Put('/{name}/reset')
+    @Security('backendAuthToken', ['document/write'])
     public async resetDoc(
         @Path() name: string,
         @Body() body: Report,
+        @Request() request: ExpressRequest,
     ): Promise<DocResetResponse> {
-        const  docInfo = validateDocName(name);
+        const docInfo = validateDocName(name);
         if (docInfo instanceof Error) {
             // NOTE: Express error handler handles ValidateError
             throw new ValidateError(
-                { name: { message: docInfo.message, value: name  } },
+                { name: { message: docInfo.message, value: name } },
                 'Validation Failed',
-            )
+            );
         }
 
         // NOTE: We can ignore if it does not exist
         try {
+            const hocuspocusServer = request.app.locals.hocuspocus;
             const connection = await hocuspocusServer.openDirectConnection(name);
             const connectionDoc = connection.document;
 
@@ -97,7 +102,8 @@ export class DocController extends Controller {
                 });
             }
             await connection.disconnect();
-        } catch (ex) {
+        }
+        catch (ex) {
             console.error('Could not open/close direct connection to document', ex);
         }
 
@@ -106,24 +112,26 @@ export class DocController extends Controller {
         };
     }
 
-     /**
+    /**
      * Returns the content of the document as slate's data model.
      */
-    @Get("/{name}")
-    @Security("userAuthJwt", ["document/read"])
+    @Get('/{name}')
+    @Security('userAuthJwt', ['document/read'])
     public async getDoc(
         @Path() name: string,
+        @Request() request: ExpressRequest,
     ): Promise<DocGetResponse> {
         const docInfo = validateDocName(name);
         if (docInfo instanceof Error) {
             // NOTE: Express error handler handles ValidateError
             throw new ValidateError(
-                { name: { message: docInfo.message, value: name  } },
+                { name: { message: docInfo.message, value: name } },
                 'Validation Failed',
-            )
+            );
         }
 
-        const doc = await getDoc(name);
+        const hocuspocusServer = request.app.locals.hocuspocus;
+        const doc = await getDoc(name, hocuspocusServer);
         if (doc instanceof Error) {
             throw doc;
         }

@@ -1,4 +1,4 @@
-import { CognitoJwtVerifier } from "aws-jwt-verify";
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
 export async function verifyJwt(
     token: string,
@@ -6,10 +6,12 @@ export async function verifyJwt(
     clientId: string,
     issuer: string | undefined,
     tokenUse: 'id' | 'access',
+    graceSeconds = 0,
 ) {
     const verifier = CognitoJwtVerifier.create({
         userPoolId: (userPoolId as string),
         overrideIssuer: issuer,
+        graceSeconds,
     });
 
     try {
@@ -21,11 +23,15 @@ export async function verifyJwt(
             },
         );
         return payload;
-    } catch (err) {
+    }
+    catch (err) {
         if (err instanceof Error) {
             return err;
         }
-        return Error('Failed to verify jwt')
+        return Error('Failed to verify jwt');
     }
 }
 
+export function verifyServiceToken(token: string, expected: string) {
+    return token === expected;
+}

@@ -1,23 +1,25 @@
-import express from 'express';
+import { type Request as ExpressRequest } from 'express';
 
-import { verifyJwt } from './utils/jwt.ts';
-import { AuthError } from './utils/error.ts';
-import env from './utils/env.ts';
+import { verifyJwt, verifyServiceToken } from '../utils/jwt.ts';
+import { AuthError } from '../utils/error.ts';
+import env from '../utils/env.ts';
 
 export async function expressAuthentication(
-    request: express.Request,
+    request: ExpressRequest,
     securityName: string,
     // scopes?: string[]
+    // FIXME: node-tsc does not consider this valid
+    // ): Promise<ExpressRequest['user']> {
 ) {
     if (securityName !== 'userAuthJwt' && securityName !== 'backendAuthToken') {
         // NOTE: Express error handler handles AuthError
-        throw new AuthError('Security name should either be "userAuthJwt" or "backendAuthToken"', 401)
+        throw new AuthError('Security name should either be "userAuthJwt" or "backendAuthToken"', 401);
     }
 
     const authHeader = request.header('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         // NOTE: Express error handler handles AuthError
-        throw new AuthError('Missing or invalid Authorization header', 401)
+        throw new AuthError('Missing or invalid Authorization header', 401);
     }
 
     const token = authHeader.replace(/^Bearer /, '');
@@ -32,7 +34,7 @@ export async function expressAuthentication(
 
         if (tokenData instanceof Error) {
             // NOTE: Express error handler handles AuthError
-            throw new AuthError(tokenData.message, 401)
+            throw new AuthError(tokenData.message, 401);
         }
 
         // TODO: match scope with groups
@@ -44,10 +46,12 @@ export async function expressAuthentication(
             scope: undefined,
             token,
         };
-    } else {
-        if (token !== env.SERVICE_TOKEN) {
+    }
+    else {
+        const isValid = verifyServiceToken(token, env.SERVICE_TOKEN);
+        if (!isValid) {
             // NOTE: Express error handler handles AuthError
-            throw new AuthError('Service token is not correct', 401)
+            throw new AuthError('Service token is not correct', 401);
         }
         // TODO: match scope with token scope
         return {

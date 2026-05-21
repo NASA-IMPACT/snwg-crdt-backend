@@ -9,6 +9,8 @@ interface SlateText {
     bold?: boolean;
     subscript?: boolean;
     superscript?: boolean;
+    comment?: boolean;
+    [key: `comment_${string}`]: boolean | undefined;
 }
 
 interface SlateBaseNode {

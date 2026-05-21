@@ -2,6 +2,12 @@
 const DOC_PREFIX = 'document';
 const SCHEMA_VERSION = 'v1';
 
+// NOTE: At runtime SlateText also carries `comment_${string}: boolean` keys to
+// track per-comment marks, but we omit that template-literal index signature
+// here. tsoa cannot represent it in OpenAPI, and modelling it would force every
+// node type below to be generic just to keep a loose variant alive at the
+// route boundary. Code that needs to read/write comment marks accesses those
+// keys dynamically.
 interface SlateText {
     text: string;
     underline?: boolean;
@@ -10,7 +16,6 @@ interface SlateText {
     subscript?: boolean;
     superscript?: boolean;
     comment?: boolean;
-    [key: `comment_${string}`]: boolean | undefined;
 }
 
 interface SlateBaseNode {

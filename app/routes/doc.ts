@@ -9,11 +9,13 @@ import {
     Path,
     ValidateError,
     Request,
+    Example,
 } from 'tsoa';
 import { type Request as ExpressRequest } from 'express';
 
 import { validateDocName } from '../utils/doc.ts';
-import { getDoc } from '../core/hocuspocus.ts';
+import { getDoc, getActiveUsers } from '../core/hocuspocus.ts';
+import { NotFoundError } from '../utils/error.ts';
 import {
     clearReport,
     transformReport,
@@ -24,6 +26,16 @@ import { type SlateElement } from '../utils/doc.ts';
 
 interface DocResetResponse {
     docName: string;
+}
+
+interface ActiveUser {
+    id: string;
+    name: string;
+}
+
+interface DocPresenceResponse {
+    activeUsers: ActiveUser[];
+    hasUnsavedChanges: boolean;
 }
 
 /**
@@ -136,5 +148,39 @@ export class DocController extends Controller {
             throw doc;
         }
         return transformReport(doc);
+    }
+
+    /**
+     * Returns the other users connected to the document,
+     * and whether it has changes not yet saved to the backend.
+     */
+    @Get('/{name}/presence')
+    @Security('userAuthJwt', ['document/read'])
+    @Example<DocPresenceResponse>({
+        activeUsers: [{ id: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', name: 'Carlos Curator' }],
+        hasUnsavedChanges: true,
+    })
+    public async getDocPresence(
+        @Path() name: string,
+        @Request() request: ExpressRequest,
+    ): Promise<DocPresenceResponse> {
+        const docInfo = validateDocName(name);
+        if (docInfo instanceof Error) {
+            // NOTE: Express error handler handles ValidateError
+            throw new ValidateError(
+                { name: { message: docInfo.message, value: name } },
+                'Validation Failed',
+            );
+        }
+
+        const hocuspocusServer = request.app.locals.hocuspocus;
+        const doc = await getDoc(name, hocuspocusServer);
+        const noOfUpdates = doc instanceof NotFoundError
+            ? 0
+            : transformReport(doc).__update_states__?.no_of_updates ?? 0;
+        return {
+            activeUsers: getActiveUsers(name, hocuspocusServer, request.user?.id),
+            hasUnsavedChanges: noOfUpdates > 0,
+        };
     }
 }

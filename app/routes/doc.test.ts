@@ -1,12 +1,13 @@
 import * as Y from 'yjs';
 import { describe, test, expect, vi, afterEach } from 'vitest';
 import request from 'supertest';
+import { Document, type Connection, type Hocuspocus } from '@hocuspocus/server';
 
 import { mockTokenPayload } from '../../assets/jwt.ts';
 import { initWsApp } from '../core/express.ts';
 import * as jwt from '../../app/utils/jwt.ts';
 import { s3Extension, registerHocuspocus } from '../core/hocuspocus.ts';
-import { slateReportToDoc } from '../../app/utils/report.ts';
+import { slateReportToDoc, changeReportUpdateStates } from '../../app/utils/report.ts';
 import { report } from '../../assets/report.ts';
 import { getS3Implementation } from '../../assets/s3.ts';
 
@@ -21,6 +22,8 @@ describe('REST doc', () => {
         },
     );
 
+    const hocuspocus: Hocuspocus = wsApp.locals.hocuspocus;
+
     const verifyJwtSpy = vi.spyOn(jwt, 'verifyJwt');
     const verifyServiceTokenSpy = vi.spyOn(jwt, 'verifyServiceToken');
     const s3FetchSpy = vi.spyOn(s3Extension.configuration, 'fetch');
@@ -31,7 +34,35 @@ describe('REST doc', () => {
         verifyServiceTokenSpy.mockClear();
         s3FetchSpy.mockReset();
         s3StoreSpy.mockReset();
+
+        hocuspocus.documents.forEach((document) => {
+            // NOTE: destroy() broadcasts awareness to connections, which fake connections cannot receive
+            document.connections.clear();
+            document.destroy();
+        });
+        hocuspocus.documents.clear();
     });
+
+    const requester = {
+        id: mockTokenPayload['cognito:username'] as string,
+        username: 'Carlos Curator',
+        email: 'curator@example.com',
+    };
+
+    function loadDocWithConnections(
+        name: string,
+        noOfUpdates: number,
+        users: { id: string; username?: string; email: string }[],
+    ) {
+        const document = new Document(name);
+        slateReportToDoc(report, document);
+        changeReportUpdateStates(document, () => ({ no_of_updates: noOfUpdates }));
+        users.forEach((user) => {
+            // NOTE: Document keys connections by their websocket
+            document.addConnection({ webSocket: {}, context: { user } } as unknown as Connection);
+        });
+        hocuspocus.documents.set(name, document);
+    }
 
     test('GET /documents/{name} with incorrect document format', async () => {
         verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
@@ -223,5 +254,133 @@ describe('REST doc', () => {
         expect(s3FetchSpy).toHaveBeenCalledTimes(3);
         expect(s3StoreSpy).toHaveBeenCalledTimes(1);
         expect(res2.status).toBe(200);
+    });
+
+    test('GET /documents/{name}/presence with incorrect document format', async () => {
+        verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
+
+        const res = await request(wsApp)
+            .get('/documents/doc_v1_7777/presence')
+            .set('Authorization', 'Bearer my-valid-token');
+
+        expect(verifyJwtSpy).toHaveBeenCalledOnce();
+
+        expect(res.status).toBe(422);
+        expect(res.body).toStrictEqual({
+            message: 'Validation failed',
+            details: {
+                name: {
+                    message: 'Document name should start with "document"',
+                    value: 'doc_v1_7777',
+                },
+            },
+        });
+    });
+
+    test('GET /documents/{name}/presence without token', async () => {
+        const res = await request(wsApp)
+            .get('/documents/document_v1_66/presence');
+
+        expect(verifyJwtSpy).toHaveBeenCalledTimes(0);
+        expect(s3FetchSpy).toHaveBeenCalledTimes(0);
+
+        expect(res.status).toBe(401);
+        expect(res.body).toStrictEqual({
+            message: 'Unauthorized',
+            details: 'Missing or invalid Authorization header',
+        });
+    });
+
+    test('GET /documents/{name}/presence with non existing document', async () => {
+        verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
+        const { fetch, store } = getS3Implementation();
+        s3FetchSpy.mockImplementationOnce(fetch);
+        s3StoreSpy.mockImplementationOnce(store);
+
+        const res = await request(wsApp)
+            .get('/documents/document_v1_77/presence')
+            .set('Authorization', 'Bearer my-valid-token');
+
+        expect(verifyJwtSpy).toHaveBeenCalledOnce();
+        expect(s3FetchSpy).toHaveBeenCalledOnce();
+        expect(s3StoreSpy).toHaveBeenCalledTimes(0);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toStrictEqual({
+            activeUsers: [],
+            hasUnsavedChanges: false,
+        });
+    });
+
+    test('GET /documents/{name}/presence with unsaved changes in s3', async () => {
+        verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
+
+        const doc = new Y.Doc();
+        slateReportToDoc(report, doc);
+        changeReportUpdateStates(doc, () => ({ no_of_updates: 3 }));
+        const binaryData = Y.encodeStateAsUpdate(doc);
+
+        const { fetch, store } = getS3Implementation({
+            document_v1_88: binaryData,
+        });
+        s3FetchSpy.mockImplementationOnce(fetch);
+        s3StoreSpy.mockImplementationOnce(store);
+
+        const res = await request(wsApp)
+            .get('/documents/document_v1_88/presence')
+            .set('Authorization', 'Bearer my-valid-token');
+
+        expect(verifyJwtSpy).toHaveBeenCalledOnce();
+        expect(s3FetchSpy).toHaveBeenCalledOnce();
+        expect(s3StoreSpy).toHaveBeenCalledTimes(0);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toStrictEqual({
+            activeUsers: [],
+            hasUnsavedChanges: true,
+        });
+    });
+
+    test('GET /documents/{name}/presence with document in memory', async () => {
+        verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
+
+        const ana = { id: 'ana-id', username: 'Ana', email: 'ana@example.com' };
+        const ben = { id: 'ben-id', email: 'ben@example.com' };
+        loadDocWithConnections('document_v1_99', 2, [requester, ana, ana, ben]);
+
+        const res = await request(wsApp)
+            .get('/documents/document_v1_99/presence')
+            .set('Authorization', 'Bearer my-valid-token');
+
+        expect(verifyJwtSpy).toHaveBeenCalledOnce();
+        expect(s3FetchSpy).toHaveBeenCalledTimes(0);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toStrictEqual({
+            activeUsers: [
+                { id: 'ana-id', name: 'Ana' },
+                { id: 'ben-id', name: 'ben@example.com' },
+            ],
+            hasUnsavedChanges: true,
+        });
+    });
+
+    test('GET /documents/{name}/presence with only the requester connected', async () => {
+        verifyJwtSpy.mockResolvedValueOnce(mockTokenPayload);
+
+        loadDocWithConnections('document_v1_111', 0, [requester]);
+
+        const res = await request(wsApp)
+            .get('/documents/document_v1_111/presence')
+            .set('Authorization', 'Bearer my-valid-token');
+
+        expect(verifyJwtSpy).toHaveBeenCalledOnce();
+        expect(s3FetchSpy).toHaveBeenCalledTimes(0);
+
+        expect(res.status).toBe(200);
+        expect(res.body).toStrictEqual({
+            activeUsers: [],
+            hasUnsavedChanges: false,
+        });
     });
 });

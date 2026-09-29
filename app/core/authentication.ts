@@ -37,6 +37,8 @@ export async function expressAuthentication(
             throw new AuthError(tokenData.message, 401);
         }
 
+        // FIXME: Reject tokens without "cognito:groups" like onAuthenticate does.
+        // Users without a group can read any document over REST.
         // TODO: match scope with groups
         return {
             id: tokenData['cognito:username'] as string,

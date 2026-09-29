@@ -56,6 +56,18 @@ export async function getDoc(name: string, hocuspocusServer: Hocuspocus) {
     return s3Doc;
 }
 
+// Get the users with a websocket connection to a document, excluding the requester
+export function getActiveUsers(name: string, hocuspocusServer: Hocuspocus, requesterId?: string) {
+    const connections = hocuspocusServer.documents.get(name)?.getConnections() ?? [];
+    const users = new Map<string, { id: string; name: string }>();
+    connections.forEach(({ context: { user } }) => {
+        if (user.id !== requesterId) {
+            users.set(user.id, { id: user.id, name: user.username || user.email });
+        }
+    });
+    return Array.from(users.values());
+}
+
 async function onConnect(data: onConnectPayload) {
     const { documentName, context } = data;
     const docInfo = validateDocName(documentName);

@@ -174,6 +174,8 @@ export class DocController extends Controller {
         }
 
         const hocuspocusServer = request.app.locals.hocuspocus;
+        // FIXME: after a failed s3 store hocuspocus never stores the document again, so its
+        // changes live only in memory and after a restart this reads an older s3 copy.
         const doc = await getDoc(name, hocuspocusServer);
         const noOfUpdates = doc instanceof NotFoundError
             ? 0

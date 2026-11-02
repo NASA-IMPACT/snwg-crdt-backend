@@ -1,4 +1,5 @@
-FROM node:lts-bookworm AS dev
+# Node 25+ no longer bundles corepack, which installs pnpm below
+FROM node:24-bookworm AS dev
 
 RUN apt-get update -y \
     && apt-get install -y --no-install-recommends \
